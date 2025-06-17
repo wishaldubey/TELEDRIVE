@@ -17,6 +17,13 @@ const nextConfig = {
   // Enable image optimization for external sources
   images: {
     domains: ['t.me', 'telegram.org'],
+    remotePatterns: [
+      {
+        protocol: 'https',
+        hostname: 'api.telegram.org',
+        pathname: '/file/**',
+      },
+    ],
   },
   // Output standalone build for better optimization
   output: 'standalone',
@@ -25,6 +32,7 @@ const nextConfig = {
     MONGODB_URI: process.env.MONGODB_URI,
     JWT_SECRET: process.env.JWT_SECRET || 'secure-jwt-secret-for-teledrive-project',
     TELEGRAM_BOT_USERNAME: process.env.TELEGRAM_BOT_USERNAME || 'TeloBoxBot',
+    TELEGRAM_BOT_TOKEN: process.env.TELEGRAM_BOT_TOKEN || '8069923631:AAFuNciS0sd8WzCCH-Zx-acdd9l3rt5O3FA',
     NEXT_PUBLIC_APP_URL: process.env.NEXT_PUBLIC_APP_URL || 'https://telegramdrive.vercel.app'
   },
 };

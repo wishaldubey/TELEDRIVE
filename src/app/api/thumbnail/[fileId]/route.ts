@@ -80,14 +80,16 @@ export async function GET(
       }, { status: thumbnailResponse.status });
     }
     
-    const headers = new Headers(thumbnailResponse.headers);
+    // Instead of streaming directly, convert to arrayBuffer for Vercel compatibility
+    const arrayBuffer = await thumbnailResponse.arrayBuffer();
+    
+    const headers = new Headers();
     headers.set('Content-Type', 'image/jpeg');
     headers.set('Cache-Control', 'public, max-age=86400'); // Cache for 24 hours
     
-    // Return a streaming response with the thumbnail
-    return new NextResponse(thumbnailResponse.body, {
-      status: thumbnailResponse.status,
-      statusText: thumbnailResponse.statusText,
+    // Return the thumbnail as a buffer instead of streaming
+    return new NextResponse(arrayBuffer, {
+      status: 200,
       headers
     });
   } catch (error) {

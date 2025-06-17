@@ -29,6 +29,15 @@
           "value": "no-store, max-age=0"
         }
       ]
+    },
+    {
+      "source": "/api/thumbnail/(.*)",
+      "headers": [
+        {
+          "key": "Cache-Control",
+          "value": "public, max-age=86400"
+        }
+      ]
     }
   ]
 } 

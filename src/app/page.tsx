@@ -120,18 +120,7 @@ export default async function Home() {
                 </h3>
                 
                 <div className="space-y-4 text-gray-300">
-<p>
-  1. Find{" "}
-  <a
-    href="https://t.me/TeloBoxBot"
-    target="_blank"
-    rel="noopener noreferrer"
-    className="text-primary font-semibold underline"
-  >
-    @TeloBoxBot
-  </a>{" "}
-  on Telegram
-</p>
+                  <p>1. Find <span className="text-primary font-semibold">@TeleDrive_Bot</span> on Telegram</p>
                   <p>2. Start the bot with the <span className="bg-card px-2 py-1 rounded font-mono text-sm">/start</span> command</p>
                   <p>3. Follow the instructions to authorize the bot</p>
                   <p>4. Add the bot to your channels as an admin to enable file indexing</p>
