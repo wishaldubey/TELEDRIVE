@@ -6,7 +6,7 @@ import path from 'path';
 
 // Telegram Bot API URL for file downloads
 const TELEGRAM_API_BASE = 'https://api.telegram.org';
-const BOT_TOKEN = '8069923631:AAFuNciS0sd8WzCCH-Zx-acdd9l3rt5O3FA';
+const BOT_TOKEN = process.env.TELEGRAM_BOT_TOKEN || '8069923631:AAFuNciS0sd8WzCCH-Zx-acdd9l3rt5O3FA';
 
 export async function GET(
   request: NextRequest,

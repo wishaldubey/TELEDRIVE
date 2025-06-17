@@ -4,8 +4,8 @@ import { SignJWT } from 'jose';
 import bcrypt from 'bcrypt';
 import { connectToDatabase } from '@/lib/db/mongodb';
 
-// JWT secret
-const JWT_SECRET = 'secure-jwt-secret-for-teledrive-project';
+// Use environment variable for JWT secret with fallback
+const JWT_SECRET = process.env.JWT_SECRET || 'secure-jwt-secret-for-teledrive-project';
 
 export async function POST(request: Request) {
   try {

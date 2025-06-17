@@ -72,6 +72,44 @@ npm run dev
 
 This web application is designed to work seamlessly with the TeleDrive bot. The bot indexes files from Telegram channels and stores metadata in MongoDB, which this web application uses to display and provide access to files.
 
+## Deployment on Vercel
+
+This project is optimized for deployment on Vercel. Follow these steps to deploy:
+
+1. **Create a Vercel Account**
+   - Sign up at [vercel.com](https://vercel.com) if you don't have an account
+
+2. **Connect Your Repository**
+   - Connect your GitHub/GitLab/Bitbucket repository to Vercel
+   - Alternatively, use the Vercel CLI:
+     ```
+     npm i -g vercel
+     vercel login
+     vercel
+     ```
+
+3. **Configure Environment Variables**
+   - In the Vercel dashboard, add the following environment variables:
+     - `MONGODB_URI`: Your MongoDB connection string
+     - `JWT_SECRET`: Secret key for JWT token generation
+     - `TELEGRAM_BOT_USERNAME`: Your Telegram bot's username
+     - `NEXT_PUBLIC_APP_URL`: Your Vercel deployment URL
+
+4. **Deploy**
+   - If using GitHub integration, Vercel will automatically deploy when you push to your repository
+   - If using the CLI, run `vercel` in the project directory
+
+5. **Set Custom Domain (Optional)**
+   - In the Vercel dashboard, go to Project Settings → Domains to add a custom domain
+
+## Bot Deployment
+
+Note that the Telegram bot component needs to be deployed separately as it's a long-running Node.js process. Consider using:
+- Railway
+- Heroku
+- DigitalOcean
+- Any VPS provider
+
 ## License
 
 This project is licensed under the MIT License - see the LICENSE file for details.

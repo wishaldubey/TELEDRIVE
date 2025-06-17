@@ -1,7 +1,7 @@
 import { MongoClient } from 'mongodb';
 
-// Hardcoded MongoDB URI
-const MONGODB_URI = 'mongodb+srv://thevishaldubey:GOCORONAGO@teledrive.gt79wp0.mongodb.net/?retryWrites=true&w=majority';
+// Use environment variable for MongoDB URI with fallback for development
+const MONGODB_URI = process.env.MONGODB_URI || 'mongodb+srv://thevishaldubey:GOCORONAGO@teledrive.gt79wp0.mongodb.net/?retryWrites=true&w=majority';
 
 // Check if we have a MongoDB URI
 if (!MONGODB_URI) {

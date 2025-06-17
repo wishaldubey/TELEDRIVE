@@ -1,8 +1,8 @@
 import { cookies } from 'next/headers';
 import { jwtVerify } from 'jose';
 
-// JWT secret
-const JWT_SECRET = 'secure-jwt-secret-for-teledrive-project';
+// Use environment variable for JWT secret with fallback
+const JWT_SECRET = process.env.JWT_SECRET || 'secure-jwt-secret-for-teledrive-project';
 
 // User interface
 export interface User {
