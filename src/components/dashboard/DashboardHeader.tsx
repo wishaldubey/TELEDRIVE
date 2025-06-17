@@ -30,10 +30,25 @@ export default function DashboardHeader({ user }: DashboardHeaderProps) {
     }
   };
 
-  // Generate avatar initials from username
-  const getInitials = (username: string) => {
-    return username.substring(0, 2).toUpperCase();
+  // Get user's display name
+  const getDisplayName = () => {
+    if (user.first_name || user.last_name) {
+      return [user.first_name, user.last_name].filter(Boolean).join(' ');
+    }
+    return user.username;
   };
+
+  // Generate avatar initials from name or username
+  const getInitials = () => {
+    if (user.first_name && user.last_name) {
+      return (user.first_name[0] + user.last_name[0]).toUpperCase();
+    } else if (user.first_name) {
+      return user.first_name.substring(0, 2).toUpperCase();
+    }
+    return (user.username || 'U').substring(0, 2).toUpperCase();
+  };
+
+  const displayName = getDisplayName();
 
   return (
     <header className="border-b border-border/40 bg-card/30 sticky top-0 z-10 backdrop-blur-sm shadow-sm">
@@ -52,7 +67,7 @@ export default function DashboardHeader({ user }: DashboardHeaderProps) {
         <div className="flex items-center gap-4">
           <div className="text-sm font-medium hidden sm:flex items-center gap-2 px-3 py-1.5 rounded-full bg-background/50 border border-border/40 max-w-[200px]">
             <span className="h-2 w-2 rounded-full bg-green animate-pulse"></span>
-            <span className="text-sm text-foreground truncate">{user.username}</span>
+            <span className="text-sm text-foreground truncate">{displayName}</span>
           </div>
           
           <DropdownMenu>
@@ -61,10 +76,10 @@ export default function DashboardHeader({ user }: DashboardHeaderProps) {
                 <Avatar className="h-9 w-9 border-2 border-primary/20 group-hover:border-primary/60 transition-all duration-200">
                   <AvatarImage 
                     src={user.profile_photo_url || ''} 
-                    alt={user.username || 'User'}
+                    alt={displayName}
                   />
                   <AvatarFallback className="bg-gradient-to-br from-primary/40 to-cyan/40 text-white text-sm font-medium">
-                    {getInitials(user.username || 'U')}
+                    {getInitials()}
                   </AvatarFallback>
                 </Avatar>
                 <span className="absolute top-0 right-0 h-2.5 w-2.5 rounded-full bg-green"></span>
@@ -75,15 +90,15 @@ export default function DashboardHeader({ user }: DashboardHeaderProps) {
                 <Avatar className="h-10 w-10">
                   <AvatarImage 
                     src={user.profile_photo_url || ''} 
-                    alt={user.username || 'User'}
+                    alt={displayName}
                   />
                   <AvatarFallback className="bg-gradient-to-br from-primary/40 to-cyan/40 text-white text-sm">
-                    {getInitials(user.username || 'U')}
+                    {getInitials()}
                   </AvatarFallback>
                 </Avatar>
                 <div className="flex flex-col">
-                  <span className="font-medium text-sm truncate max-w-[180px]">{user.username}</span>
-                  <span className="text-muted-foreground text-xs">Telegram User</span>
+                  <span className="font-medium text-sm truncate max-w-[180px]">{displayName}</span>
+                  <span className="text-muted-foreground text-xs">{user.username}</span>
                 </div>
               </div>
               

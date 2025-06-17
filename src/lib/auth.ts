@@ -8,6 +8,8 @@ const JWT_SECRET = 'secure-jwt-secret-for-teledrive-project';
 export interface User {
   user_id: number;
   username: string;
+  first_name?: string;
+  last_name?: string;
 }
 
 /**
@@ -22,7 +24,9 @@ export async function verifyAuthToken(token: string): Promise<User | null> {
     
     return {
       user_id: payload.user_id as number,
-      username: payload.username as string
+      username: payload.username as string,
+      first_name: payload.first_name as string || '',
+      last_name: payload.last_name as string || ''
     };
   } catch {
     return null;

@@ -29,11 +29,11 @@ export default async function Home() {
             <span className="text-xl font-bold text-foreground">TeleDrive</span>
           </div>
           <nav>
-            <Link href="/login">
+          <Link href="/login">
               <Button variant="outline" className="hover:text-primary hover:border-primary transition-colors">
-                Login
-              </Button>
-            </Link>
+              Login
+            </Button>
+          </Link>
           </nav>
         </div>
       </header>

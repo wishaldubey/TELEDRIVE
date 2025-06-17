@@ -24,24 +24,10 @@ export async function POST(request: Request) {
     const db = client.db('teledriveDB');
     const usersCollection = db.collection('users');
 
-    // Handle both formats of username (with and without the "user-" prefix)
-    let user = null;
+    // Find user with exact username match first
+    let user = await usersCollection.findOne({ username });
     
-    // First, try with the username as provided
-    user = await usersCollection.findOne({ username });
-    
-    // If not found, try with "user-" prefix
-    if (!user && !username.startsWith('user-')) {
-      user = await usersCollection.findOne({ username: `user-${username}` });
-    }
-    
-    // If still not found, try without "user-" prefix
-    if (!user && username.startsWith('user-')) {
-      const unprefixedUsername = username.substring(5); // Remove "user-" prefix
-      user = await usersCollection.findOne({ user_id: Number(unprefixedUsername) });
-    }
-    
-    // Try with numeric user_id
+    // If not found and username is numeric, try with user_id
     if (!user && !isNaN(Number(username))) {
       user = await usersCollection.findOne({ user_id: Number(username) });
     }
@@ -70,7 +56,9 @@ export async function POST(request: Request) {
     
     const token = await new SignJWT({
       user_id: user.user_id,
-      username: user.username
+      username: user.username,
+      first_name: user.first_name || '',
+      last_name: user.last_name || ''
     })
       .setProtectedHeader({ alg: 'HS256' })
       .setIssuedAt()
@@ -94,7 +82,9 @@ export async function POST(request: Request) {
       success: true,
       user: {
         user_id: user.user_id,
-        username: user.username
+        username: user.username,
+        first_name: user.first_name || '',
+        last_name: user.last_name || ''
       }
     });
   } catch (error) {

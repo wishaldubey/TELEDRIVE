@@ -103,7 +103,7 @@ export default function LoginForm() {
                       <FormControl>
                         <div className="relative">
                           <Input 
-                            placeholder="Enter your user ID or username" 
+                            placeholder="Enter your Telegram ID" 
                             className="bg-card pl-10 border-border/40" 
                             {...field} 
                           />
@@ -111,7 +111,7 @@ export default function LoginForm() {
                         </div>
                       </FormControl>
                       <p className="text-xs text-muted-foreground mt-1">
-                        The username was sent to you in Telegram when you added the bot
+                        Your username is your Telegram ID, sent to you when you added the bot
                       </p>
                       <FormMessage />
                     </FormItem>
