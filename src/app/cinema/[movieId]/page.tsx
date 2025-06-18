@@ -274,6 +274,18 @@ export default function MovieDetail({ params }: { params: { movieId: string } })
           </div>
         ) : movie ? (
           <>
+            {/* Back button - moved above the poster and below the header */}
+            <div className="container mx-auto px-4 mb-4">
+              <Button 
+                variant="ghost" 
+                className="text-white hover:bg-black/30"
+                onClick={() => router.back()}
+              >
+                <ArrowLeft className="mr-2 h-4 w-4" />
+                Back
+              </Button>
+            </div>
+            
             {/* Backdrop with gradient overlay - adjusted top padding to account for fixed header */}
             <div className="relative h-[70vh] w-full mt-4">
               <div 
@@ -289,14 +301,6 @@ export default function MovieDetail({ params }: { params: { movieId: string } })
               
               {/* Movie details container */}
               <div className="container mx-auto px-4 relative h-full flex flex-col justify-end pb-16">
-                <Button 
-                  variant="ghost" 
-                  className="absolute top-24 left-4 text-white hover:bg-black/30"
-                  onClick={() => router.back()}
-                >
-                  <ArrowLeft className="mr-2 h-4 w-4" />
-                  Back
-                </Button>
                 
                 <div className="flex flex-col md:flex-row gap-8 items-start">
                   {/* Movie poster */}
