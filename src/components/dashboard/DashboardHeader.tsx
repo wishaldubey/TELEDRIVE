@@ -9,7 +9,7 @@ import {
   DropdownMenuTrigger,
 } from '@/components/ui/dropdown-menu';
 import { AppUser } from '@/types';
-import { LogOut, FileIcon } from 'lucide-react';
+import { LogOut, FileIcon, Film } from 'lucide-react';
 
 interface DashboardHeaderProps {
   user: AppUser;
@@ -23,7 +23,7 @@ export default function DashboardHeader({ user }: DashboardHeaderProps) {
       });
       
       if (response.ok) {
-        window.location.href = '/login';
+        window.location.href = '/';
       }
     } catch (error) {
       console.error('Error logging out:', error);
@@ -51,7 +51,7 @@ export default function DashboardHeader({ user }: DashboardHeaderProps) {
   const displayName = getDisplayName();
 
   return (
-    <header className="border-b border-border/40 bg-card/30 sticky top-0 z-10 backdrop-blur-sm shadow-sm">
+    <header className="border-b border-border/40 bg-black/80 sticky top-0 z-50 backdrop-blur-md shadow-md">
       <div className="container mx-auto px-4 flex items-center justify-between h-16">
         <Link href="/dashboard" className="flex items-center gap-2 group">
           <div className="flex items-center justify-center bg-gradient-to-r from-primary/30 to-pink/30 w-10 h-10 rounded-full group-hover:shadow-md group-hover:shadow-primary/30 transition-all duration-300">
@@ -65,6 +65,13 @@ export default function DashboardHeader({ user }: DashboardHeaderProps) {
         </Link>
 
         <div className="flex items-center gap-4">
+          <Link href="/cinema">
+            <Button variant="ghost" size="sm" className="gap-2 hover:bg-primary/20">
+              <Film className="w-4 h-4" />
+              <span className="hidden sm:inline">Go to Cinema</span>
+            </Button>
+          </Link>
+          
           <div className="text-sm font-medium hidden sm:flex items-center gap-2 px-3 py-1.5 rounded-full bg-background/50 border border-border/40 max-w-[200px]">
             <span className="h-2 w-2 rounded-full bg-green animate-pulse"></span>
             <span className="text-sm text-foreground truncate">{displayName}</span>

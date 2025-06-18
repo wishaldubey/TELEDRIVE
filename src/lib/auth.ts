@@ -10,6 +10,8 @@ export interface User {
   username: string;
   first_name?: string;
   last_name?: string;
+  isPublicUser?: boolean;
+  channel_id?: string | null;
 }
 
 /**
@@ -26,7 +28,9 @@ export async function verifyAuthToken(token: string): Promise<User | null> {
       user_id: payload.user_id as number,
       username: payload.username as string,
       first_name: payload.first_name as string || '',
-      last_name: payload.last_name as string || ''
+      last_name: payload.last_name as string || '',
+      isPublicUser: payload.isPublicUser as boolean || false,
+      channel_id: payload.channel_id as string || null
     };
   } catch {
     return null;

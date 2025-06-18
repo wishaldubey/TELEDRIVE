@@ -11,6 +11,8 @@ export interface AppUser {
   profile_photo_url?: string; // User's profile photo URL
   first_name?: string; // User's first name
   last_name?: string; // User's last name
+  isPublicUser?: boolean; // Whether user is a public Cinema Mode user
+  channel_id?: string | null; // Drive Mode channel ID, null for Cinema Mode users
 }
 
 export interface FileData {
@@ -29,4 +31,4 @@ export interface FileData {
   thumb_file_id?: string; // Thumbnail file ID, if available
   thumb_width?: number; // Thumbnail width, if available
   thumb_height?: number; // Thumbnail height, if available
-} 
+}

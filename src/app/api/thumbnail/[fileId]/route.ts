@@ -15,41 +15,57 @@ export async function GET(
     // Get params
     const { fileId } = params;
     
-    // Get user from token
-    const cookieStore = await cookies();
-    const token = cookieStore.get('auth_token')?.value;
+    // Check if this is a public request (no auth needed)
+    const isPublic = request.nextUrl.searchParams.get('public') === 'true';
+    let userId = null;
+    let fileData = null;
     
-    if (!token) {
-      return NextResponse.json({ error: 'Authentication required' }, { status: 401 });
-    }
-    
-    const user = await verifyAuthToken(token);
-    if (!user) {
-      return NextResponse.json({ error: 'Invalid authentication token' }, { status: 401 });
-    }
-    
-    const userId = user.user_id;
-    
-    // Get file info from MongoDB to verify ownership
+    // Connect to MongoDB
     const client = await connectToDatabase();
     const db = client.db('teledriveDB');
     const filesCollection = db.collection('files');
+    const moviesCollection = db.collection('movies');
     
-    const fileData = await filesCollection.findOne({ file_id: fileId, owner_id: userId });
+    // First check if this is a movie file (public access allowed)
+    const movieFile = await moviesCollection.findOne({ file_id: fileId });
+    
+    if (movieFile) {
+      // This is a movie file, allow public access
+      fileData = { 
+        file_id: fileId, 
+        thumb_file_id: movieFile.thumb_file_id || fileId,
+        mime_type: 'image/jpeg'
+      };
+    } else {
+      // Not a movie, check authentication for private files
+      const cookieStore = await cookies();
+      const token = cookieStore.get('auth_token')?.value;
+      
+      if (!token) {
+        return NextResponse.json({ error: 'Authentication required' }, { status: 401 });
+      }
+      
+      const user = await verifyAuthToken(token);
+      if (!user) {
+        return NextResponse.json({ error: 'Invalid authentication token' }, { status: 401 });
+      }
+      
+      userId = user.user_id;
+      
+      // Get file info from MongoDB to verify ownership
+      fileData = await filesCollection.findOne({ file_id: fileId, owner_id: userId });
+    }
     
     if (!fileData) {
       console.log(`File not found or access denied: ${fileId} for user: ${userId}`);
       return NextResponse.json({ error: 'File not found or access denied' }, { status: 404 });
     }
     
-    // Check if the file has a thumbnail
-    if (!fileData.thumb_file_id) {
-      console.log(`No thumbnail available for file: ${fileId}`);
-      return NextResponse.json({ error: 'No thumbnail available' }, { status: 404 });
-    }
+    // Use thumb_file_id if available, otherwise use the file_id itself
+    const thumbnailFileId = fileData.thumb_file_id || fileId;
     
     // Get file path from Telegram
-    const getFileUrl = `${TELEGRAM_API_BASE}/bot${BOT_TOKEN}/getFile?file_id=${fileData.thumb_file_id}`;
+    const getFileUrl = `${TELEGRAM_API_BASE}/bot${BOT_TOKEN}/getFile?file_id=${thumbnailFileId}`;
     console.log(`Requesting thumbnail info from Telegram: ${getFileUrl}`);
     
     const fileResponse = await fetch(getFileUrl);
@@ -57,10 +73,12 @@ export async function GET(
     
     if (!fileResult.ok || !fileResult.result?.file_path) {
       console.error('No file_path in Telegram response:', fileResult);
-      return NextResponse.json({ 
-        error: 'Failed to get thumbnail from Telegram', 
-        details: fileResult.description || 'Invalid file path'
-      }, { status: 500 });
+      
+      // Return a placeholder image instead of an error
+      const placeholderPath = process.cwd() + '/public/placeholder-movie.jpg';
+      
+      // For Vercel, we need to redirect to the placeholder
+      return NextResponse.redirect(new URL('/placeholder-movie.jpg', request.url));
     }
     
     const filePath = fileResult.result.file_path;

@@ -58,7 +58,9 @@ export async function POST(request: Request) {
       user_id: user.user_id,
       username: user.username,
       first_name: user.first_name || '',
-      last_name: user.last_name || ''
+      last_name: user.last_name || '',
+      isPublicUser: user.isPublicUser || false,
+      channel_id: user.channel_id || null
     })
       .setProtectedHeader({ alg: 'HS256' })
       .setIssuedAt()
@@ -84,7 +86,9 @@ export async function POST(request: Request) {
         user_id: user.user_id,
         username: user.username,
         first_name: user.first_name || '',
-        last_name: user.last_name || ''
+        last_name: user.last_name || '',
+        isPublicUser: user.isPublicUser || false,
+        channel_id: user.channel_id || null
       }
     });
   } catch (error) {

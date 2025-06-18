@@ -18,7 +18,7 @@ export default async function Home() {
       {/* Header/Navigation */}
       <header className="py-6 px-4 sm:px-6 lg:px-8 border-b border-border/40">
         <div className="container mx-auto flex justify-between items-center">
-          <div className="flex items-center space-x-2">
+          <div className="flex-1 flex items-center space-x-2">
             <Image
               src="/file.svg"
               alt="TeleDrive Logo"
@@ -26,14 +26,27 @@ export default async function Home() {
               height={32}
               className="text-primary"
             />
-            <span className="text-xl font-bold text-foreground">TeleDrive</span>
+            <span className="text-xl font-bold text-foreground">
+              <span className="block sm:hidden">TD</span>
+              <span className="hidden sm:block">TeleDrive</span>
+            </span>
           </div>
-          <nav>
-          <Link href="/login">
+          
+          {/* CINEMA option in center - visible on all screens */}
+          <div className="flex-1 flex justify-center">
+            <Link href="/cinema" className="group transition-all duration-300">
+              <span className="cinema-text text-3xl md:text-5xl font-bold text-white group-hover:text-red-600">
+                CINEMA
+              </span>
+            </Link>
+          </div>
+          
+          <nav className="flex-1 flex justify-end">
+            <Link href="/login">
               <Button variant="outline" className="hover:text-primary hover:border-primary transition-colors">
-              Login
-            </Button>
-          </Link>
+                Login
+              </Button>
+            </Link>
           </nav>
         </div>
       </header>

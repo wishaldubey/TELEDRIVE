@@ -4,12 +4,18 @@ import { verifyAuthToken } from '@/lib/auth';
 
 // Paths that require authentication
 const PROTECTED_PATHS = ['/dashboard', '/api/files', '/api/download'];
+// Paths that require Drive Mode access (require channel_id)
+const DRIVE_MODE_PATHS = ['/dashboard', '/api/files'];
+// Paths that both user types can access (but still need auth)
+const CINEMA_PATHS = ['/cinema', '/api/movies'];
 
 export async function middleware(request: NextRequest) {
   // Check if the request is for a protected route
   const path = request.nextUrl.pathname;
   
-  if (!PROTECTED_PATHS.some(prefix => path.startsWith(prefix))) {
+  // If not a protected path, continue
+  if (!PROTECTED_PATHS.some(prefix => path.startsWith(prefix)) && 
+      !CINEMA_PATHS.some(prefix => path.startsWith(prefix))) {
     return NextResponse.next();
   }
 
@@ -24,15 +30,22 @@ export async function middleware(request: NextRequest) {
 
   try {
     // Verify the token
-    const payload = await verifyAuthToken(token);
+    const user = await verifyAuthToken(token);
     
-    if (!payload) {
+    if (!user) {
       // If token is invalid, redirect to login
       const loginUrl = new URL('/login', request.url);
       return NextResponse.redirect(loginUrl);
     }
 
-    // Token is valid, continue to the requested page
+    // Check if the user is trying to access Drive Mode paths but doesn't have a channel_id
+    if (DRIVE_MODE_PATHS.some(prefix => path.startsWith(prefix)) && !user.channel_id) {
+      // Redirect to cinema if the user is a public user
+      const cinemaUrl = new URL('/cinema', request.url);
+      return NextResponse.redirect(cinemaUrl);
+    }
+
+    // Token is valid and user has appropriate access, continue to the requested page
     return NextResponse.next();
   } catch (error) {
     console.error('Auth middleware error:', error);
@@ -48,5 +61,7 @@ export const config = {
     '/dashboard/:path*',
     '/api/files/:path*',
     '/api/download/:path*',
+    '/cinema/:path*',
+    '/api/movies/:path*',
   ],
 }; 

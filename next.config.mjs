@@ -16,12 +16,21 @@ const nextConfig = {
   },
   // Enable image optimization for external sources
   images: {
-    domains: ['t.me', 'telegram.org'],
     remotePatterns: [
       {
         protocol: 'https',
         hostname: 'api.telegram.org',
         pathname: '/file/**',
+      },
+      {
+        protocol: 'https',
+        hostname: 't.me',
+        pathname: '/**',
+      },
+      {
+        protocol: 'https',
+        hostname: 'telegram.org',
+        pathname: '/**',
       },
     ],
   },

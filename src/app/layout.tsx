@@ -1,5 +1,6 @@
 import type { Metadata } from "next";
 import { Geist, Geist_Mono } from "next/font/google";
+import { Toaster } from "sonner";
 import "./globals.css";
 
 const geistSans = Geist({
@@ -15,6 +16,9 @@ const geistMono = Geist_Mono({
 export const metadata: Metadata = {
   title: "TeleDrive - Access your Telegram files",
   description: "Securely browse, search, and download your Telegram media with TeleDrive",
+  other: {
+    "google": "notranslate", // Tells Google not to translate the page
+  }
 };
 
 export default function RootLayout({
@@ -23,11 +27,15 @@ export default function RootLayout({
   children: React.ReactNode;
 }>) {
   return (
-    <html lang="en" className="dark">
+    <html lang="en" className="dark" translate="no">
+      <head>
+        <meta name="google" content="notranslate" />
+      </head>
       <body
         suppressHydrationWarning
         className={`${geistSans.variable} ${geistMono.variable} antialiased min-h-screen`}
       >
+        <Toaster position="top-center" richColors />
         {children}
       </body>
     </html>
