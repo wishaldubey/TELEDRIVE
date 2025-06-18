@@ -15,27 +15,64 @@ import {
 } from '@/components/ui/table';
 import { formatBytes } from '@/lib/utils';
 import { formatDistanceToNow } from 'date-fns';
-import { Download, Grid, List, Loader2, Search, Filter, SlidersHorizontal, ChevronDown, FileImage, FileVideo, FileAudio, FileIcon } from 'lucide-react';
+import { Download, Grid, List, Loader2, Search, Filter, SlidersHorizontal, ChevronDown, FileImage, FileVideo, FileAudio, FileIcon, ChevronRight, ChevronLeft } from 'lucide-react';
 import Link from 'next/link';
 import { Badge } from '../ui/badge';
+import { toast } from 'sonner';
 
 interface FileGridProps {
   files: FileData[];
-  totalFiles: number;
-  currentPage: number;
+  totalFiles?: number;
+  currentPage?: number;
+  compact?: boolean;
 }
 
 // Number of items per page
 const ITEMS_PER_PAGE = 20;
 
-export default function FileGrid({ files, totalFiles, currentPage }: FileGridProps) {
+export default function FileGrid({ files, totalFiles = 0, currentPage = 1, compact = false }: FileGridProps) {
   const [inputValue, setInputValue] = useState('');
   const [searchQuery, setSearchQuery] = useState('');
   const [filterType, setFilterType] = useState<string>('all');
   const [viewMode, setViewMode] = useState<'grid' | 'list'>('grid');
   const [isDownloading, setIsDownloading] = useState<Record<string, boolean>>({});
   const [filterOpen, setFilterOpen] = useState(false);
+  const [filteredFiles, setFilteredFiles] = useState<FileData[]>(files);
+  
   const searchInputRef = useRef<HTMLInputElement>(null);
+  const rowRef = useRef<HTMLDivElement>(null);
+
+  // Re-filter files when files, searchQuery, or filterType changes
+  useEffect(() => {
+    const filtered = files.filter((file) => {
+      const matchesSearch = 
+        (file.caption?.toLowerCase().includes(searchQuery.toLowerCase()) || 
+         file.file_name?.toLowerCase().includes(searchQuery.toLowerCase()) || 
+         !searchQuery);
+  
+      const matchesType = filterType === 'all' || file.file_type === filterType;
+  
+      return matchesSearch && matchesType;
+    });
+    
+    setFilteredFiles(filtered);
+  }, [files, searchQuery, filterType]);
+
+  // Scroll handler for Netflix-style rows
+  const handleScroll = (direction: 'left' | 'right') => {
+    if (rowRef.current) {
+      const scrollAmount = 600; // Adjust as needed
+      const currentScroll = rowRef.current.scrollLeft;
+      const newScroll = direction === 'left' 
+        ? Math.max(0, currentScroll - scrollAmount) 
+        : currentScroll + scrollAmount;
+      
+      rowRef.current.scrollTo({
+        left: newScroll,
+        behavior: 'smooth'
+      });
+    }
+  };
 
   // Add animation class when files change
   useEffect(() => {
@@ -45,19 +82,7 @@ export default function FileGrid({ files, totalFiles, currentPage }: FileGridPro
         card.classList.add('file-card-visible');
       }, 50 * index);
     });
-  }, [files, viewMode]);
-
-  // Filter files based on search query and file type
-  const filteredFiles = files.filter((file) => {
-    const matchesSearch = 
-      (file.caption?.toLowerCase().includes(searchQuery.toLowerCase()) || 
-       file.file_name?.toLowerCase().includes(searchQuery.toLowerCase()) || 
-       !searchQuery);
-
-    const matchesType = filterType === 'all' || file.file_type === filterType;
-
-    return matchesSearch && matchesType;
-  });
+  }, [filteredFiles, viewMode]);
 
   // Handle search input change
   const handleSearchInput = (e: React.ChangeEvent<HTMLInputElement>) => {
@@ -84,6 +109,13 @@ export default function FileGrid({ files, totalFiles, currentPage }: FileGridPro
     if (searchInputRef.current) {
       searchInputRef.current.focus();
     }
+  };
+
+  // Handler for setting filter type
+  const handleFilterTypeChange = (type: string) => {
+    setFilterType(type);
+    setFilterOpen(false);
+    toast.success(`Filter set to ${type === 'all' ? 'All Types' : `${type}s`}`);
   };
 
   // Calculate total pages
@@ -127,7 +159,7 @@ export default function FileGrid({ files, totalFiles, currentPage }: FileGridPro
     }
   };
   
-  // Get file type badge color
+  // Get file type color
   const getFileTypeColor = (fileType: string) => {
     switch (fileType) {
       case 'photo':
@@ -143,6 +175,45 @@ export default function FileGrid({ files, totalFiles, currentPage }: FileGridPro
     }
   };
 
+  // If compact mode, render the Netflix-style row
+  if (compact) {
+    return (
+      <div className="relative group">
+        {/* Scroll controls - only visible on hover or when scrolling */}
+        {files.length > 5 && (
+          <>
+            <button 
+              onClick={() => handleScroll('left')}
+              className="absolute left-0 top-1/2 -translate-y-1/2 z-10 bg-black/70 hover:bg-black/90 p-2 rounded-full transform -translate-x-1/2 opacity-0 group-hover:opacity-100 transition-opacity"
+            >
+              <ChevronLeft className="h-5 w-5 text-white" />
+            </button>
+            <button 
+              onClick={() => handleScroll('right')}
+              className="absolute right-0 top-1/2 -translate-y-1/2 z-10 bg-black/70 hover:bg-black/90 p-2 rounded-full transform translate-x-1/2 opacity-0 group-hover:opacity-100 transition-opacity"
+            >
+              <ChevronRight className="h-5 w-5 text-white" />
+            </button>
+          </>
+        )}
+        
+        {/* Horizontal scrolling row */}
+        <div 
+          ref={rowRef}
+          className="flex space-x-4 overflow-x-auto pb-4 scrollbar-hide"
+          style={{ scrollbarWidth: 'none', msOverflowStyle: 'none' }}
+        >
+          {files.map((file) => (
+            <div key={file._id} className="flex-none w-[180px] file-card opacity-0 transition-all duration-300 transform translate-y-4">
+              <FileCard file={file} />
+            </div>
+          ))}
+        </div>
+      </div>
+    );
+  }
+
+  // Regular grid view
   return (
     <div className="space-y-6 animate-fadeIn">
       <div className="flex flex-col md:flex-row gap-3">
@@ -188,20 +259,14 @@ export default function FileGrid({ files, totalFiles, currentPage }: FileGridPro
                 <Button 
                   variant={filterType === 'all' ? 'default' : 'ghost'} 
                   className="w-full justify-start text-sm mb-1"
-                  onClick={() => {
-                    setFilterType('all');
-                    setFilterOpen(false);
-                  }}
+                  onClick={() => handleFilterTypeChange('all')}
                 >
                   All Types
                 </Button>
                 <Button 
                   variant={filterType === 'document' ? 'default' : 'ghost'} 
                   className="w-full justify-start text-sm mb-1"
-                  onClick={() => {
-                    setFilterType('document');
-                    setFilterOpen(false);
-                  }}
+                  onClick={() => handleFilterTypeChange('document')}
                 >
                   <div className="w-2 h-2 rounded-full bg-cyan mr-2"></div>
                   Documents
@@ -209,10 +274,7 @@ export default function FileGrid({ files, totalFiles, currentPage }: FileGridPro
                 <Button 
                   variant={filterType === 'photo' ? 'default' : 'ghost'} 
                   className="w-full justify-start text-sm mb-1"
-                  onClick={() => {
-                    setFilterType('photo');
-                    setFilterOpen(false);
-                  }}
+                  onClick={() => handleFilterTypeChange('photo')}
                 >
                   <div className="w-2 h-2 rounded-full bg-primary mr-2"></div>
                   Photos
@@ -220,10 +282,7 @@ export default function FileGrid({ files, totalFiles, currentPage }: FileGridPro
                 <Button 
                   variant={filterType === 'video' ? 'default' : 'ghost'} 
                   className="w-full justify-start text-sm mb-1"
-                  onClick={() => {
-                    setFilterType('video');
-                    setFilterOpen(false);
-                  }}
+                  onClick={() => handleFilterTypeChange('video')}
                 >
                   <div className="w-2 h-2 rounded-full bg-pink mr-2" style={{backgroundColor: 'var(--pink)'}}></div>
                   Videos
@@ -231,10 +290,7 @@ export default function FileGrid({ files, totalFiles, currentPage }: FileGridPro
                 <Button 
                   variant={filterType === 'audio' ? 'default' : 'ghost'} 
                   className="w-full justify-start text-sm"
-                  onClick={() => {
-                    setFilterType('audio');
-                    setFilterOpen(false);
-                  }}
+                  onClick={() => handleFilterTypeChange('audio')}
                 >
                   <div className="w-2 h-2 rounded-full bg-green mr-2" style={{backgroundColor: 'var(--green)'}}></div>
                   Audio

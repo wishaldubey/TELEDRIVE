@@ -6,10 +6,13 @@ import { Button } from '@/components/ui/button';
 import {
   DropdownMenu,
   DropdownMenuContent,
+  DropdownMenuItem,
   DropdownMenuTrigger,
 } from '@/components/ui/dropdown-menu';
 import { AppUser } from '@/types';
-import { LogOut, FileIcon, Film } from 'lucide-react';
+import { LogOut, FileIcon, Film, Search, Bell, User as UserIcon } from 'lucide-react';
+import { Input } from '@/components/ui/input';
+import Image from 'next/image';
 
 interface DashboardHeaderProps {
   user: AppUser;
@@ -51,74 +54,91 @@ export default function DashboardHeader({ user }: DashboardHeaderProps) {
   const displayName = getDisplayName();
 
   return (
-    <header className="border-b border-border/40 bg-black/80 sticky top-0 z-50 backdrop-blur-md shadow-md">
+    <header className="fixed top-0 left-0 right-0 z-50 bg-gradient-to-b from-black/80 via-black/60 to-transparent backdrop-blur-sm">
       <div className="container mx-auto px-4 flex items-center justify-between h-16">
-        <Link href="/dashboard" className="flex items-center gap-2 group">
-          <div className="flex items-center justify-center bg-gradient-to-r from-primary/30 to-pink/30 w-10 h-10 rounded-full group-hover:shadow-md group-hover:shadow-primary/30 transition-all duration-300">
-            <FileIcon className="h-5 w-5 text-white" />
-          </div>
-          <div className="hidden sm:block">
-            <h1 className="text-xl font-semibold bg-gradient-to-r from-white via-primary to-pink bg-clip-text text-transparent whitespace-nowrap">
-              TeleDrive
-            </h1>
-          </div>
-        </Link>
+        <div className="flex items-center gap-6">
+          <Link href="/dashboard" className="flex items-center gap-2">
+            <Image
+              src="/logo.webp"
+              alt="TeleDrive Logo"
+              width={40}
+              height={40}
+              className="hidden sm:block"
+            />
+            <span className="text-2xl font-bold text-red-600">TELEDRIVE</span>
+          </Link>
+
+          <nav className="hidden md:flex">
+            <Link href="/dashboard" className="text-white hover:text-gray-300 transition-colors">
+              Files
+            </Link>
+          </nav>
+        </div>
 
         <div className="flex items-center gap-4">
+          {/* Search Bar - Only on larger screens */}
+          <div className="relative hidden md:block">
+            <Input 
+              placeholder="Search files..." 
+              className="w-48 lg:w-64 bg-gray-900/70 border-gray-700 text-white focus:ring-red-600 focus:border-red-600 pr-9"
+            />
+            <Search className="absolute right-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-gray-400" />
+          </div>
+
           <Link href="/cinema">
-            <Button variant="ghost" size="sm" className="gap-2 hover:bg-primary/20">
+            <Button variant="ghost" size="sm" className="gap-2 hover:bg-red-600/10 text-gray-300 hover:text-white">
               <Film className="w-4 h-4" />
-              <span className="hidden sm:inline">Go to Cinema</span>
+              <span className="hidden sm:inline">Cinema</span>
             </Button>
           </Link>
           
-          <div className="text-sm font-medium hidden sm:flex items-center gap-2 px-3 py-1.5 rounded-full bg-background/50 border border-border/40 max-w-[200px]">
-            <span className="h-2 w-2 rounded-full bg-green animate-pulse"></span>
-            <span className="text-sm text-foreground truncate">{displayName}</span>
-          </div>
+          <Button variant="ghost" size="icon" className="text-gray-300 hover:text-white hover:bg-gray-800/60">
+            <Bell className="h-5 w-5" />
+          </Button>
           
           <DropdownMenu>
             <DropdownMenuTrigger asChild>
-              <Button variant="ghost" className="rounded-full h-10 w-10 p-0 hover:bg-primary/20 relative group">
-                <Avatar className="h-9 w-9 border-2 border-primary/20 group-hover:border-primary/60 transition-all duration-200">
+              <Button variant="ghost" className="rounded-full h-10 w-10 p-0 hover:bg-gray-800/60 relative">
+                <Avatar className="h-8 w-8 border border-gray-700">
                   <AvatarImage 
                     src={user.profile_photo_url || ''} 
                     alt={displayName}
                   />
-                  <AvatarFallback className="bg-gradient-to-br from-primary/40 to-cyan/40 text-white text-sm font-medium">
+                  <AvatarFallback className="bg-gradient-to-br from-red-700 to-red-900 text-white text-sm font-medium">
                     {getInitials()}
                   </AvatarFallback>
                 </Avatar>
-                <span className="absolute top-0 right-0 h-2.5 w-2.5 rounded-full bg-green"></span>
+                <span className="absolute top-0 right-0 h-2 w-2 rounded-full bg-green-500"></span>
               </Button>
             </DropdownMenuTrigger>
-            <DropdownMenuContent align="end" className="w-64 border-border/40 p-2 mr-2 shadow-xl bg-card/95 backdrop-blur-sm">
-              <div className="flex items-center gap-3 p-3 border-b border-border/30 mb-1">
+            <DropdownMenuContent align="end" className="w-64 bg-black/90 border-gray-800 text-white p-1 mt-1">
+              <div className="flex items-center gap-3 p-3 border-b border-gray-800 mb-1">
                 <Avatar className="h-10 w-10">
                   <AvatarImage 
                     src={user.profile_photo_url || ''} 
                     alt={displayName}
                   />
-                  <AvatarFallback className="bg-gradient-to-br from-primary/40 to-cyan/40 text-white text-sm">
+                  <AvatarFallback className="bg-gradient-to-br from-red-700 to-red-900 text-white text-sm">
                     {getInitials()}
                   </AvatarFallback>
                 </Avatar>
                 <div className="flex flex-col">
                   <span className="font-medium text-sm truncate max-w-[180px]">{displayName}</span>
-                  <span className="text-muted-foreground text-xs">{user.username}</span>
+                  <span className="text-gray-400 text-xs">{user.username}</span>
                 </div>
               </div>
               
-              <div className="border-t border-border/30 mt-1 pt-2 px-1">
-                <Button 
-                  variant="ghost" 
-                  size="sm"
+           
+               
+              
+              <div className="border-t border-gray-800 mt-1 pt-1 px-1">
+                <DropdownMenuItem 
                   onClick={handleLogout} 
-                  className="w-full justify-start text-sm text-red-500 hover:bg-red-500/10 hover:text-red-500"
+                  className="cursor-pointer hover:bg-gray-800 text-sm text-red-500 hover:text-red-400"
                 >
                   <LogOut className="mr-2 h-4 w-4" />
-                  <span>Logout</span>
-                </Button>
+                  <span>Sign Out</span>
+                </DropdownMenuItem>
               </div>
             </DropdownMenuContent>
           </DropdownMenu>

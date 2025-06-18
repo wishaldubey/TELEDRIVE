@@ -13,7 +13,8 @@ import {
   DropdownMenuItem,
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
-import { useToast } from "@/components/ui/use-toast";
+import { toast } from "sonner";
+import type { ToastT } from 'sonner';
 import { use } from "react";
 
 interface Movie {
@@ -36,7 +37,6 @@ interface Movie {
 
 export default function MovieDetail({ params }: { params: { movieId: string } }) {
   const router = useRouter();
-  const { toast } = useToast();
   
   // Get movieId directly from params
   const { movieId } = params;
@@ -94,16 +94,21 @@ export default function MovieDetail({ params }: { params: { movieId: string } })
   // Toggle watchlist status for a movie
   const toggleWatchlist = async () => {
     if (!user || !movie) {
-      toast({
-        title: "Authentication Required",
-        description: "Please log in to add movies to your watchlist",
-        variant: "destructive"
+      toast.error("Please log in to add movies to your watchlist", {
+        style: {
+          backgroundColor: 'rgba(0, 0, 0, 0.9)',
+          color: 'white',
+          borderLeft: '4px solid #e50914',
+          backdropFilter: 'blur(8px)',
+        },
+        duration: 3000,
       });
       router.push('/login');
       return;
     }
     
     const isInWatchlist = watchlist.includes(movie._id);
+    const movieTitle = movie.title; // Store the movie title to avoid null checks
     
     // Optimistic UI update
     if (isInWatchlist) {
@@ -133,17 +138,46 @@ export default function MovieDetail({ params }: { params: { movieId: string } })
         throw new Error('Failed to update watchlist');
       }
       
-      toast({
-        title: isInWatchlist ? "Removed from Watchlist" : "Added to Watchlist",
-        description: isInWatchlist ? "Movie removed from your watchlist" : "Movie added to your watchlist",
-      });
+      if (isInWatchlist) {
+        toast(`"${movieTitle}" removed from your watchlist`, {
+          style: {
+            backgroundColor: 'rgba(0, 0, 0, 0.9)',
+            color: 'white',
+            borderLeft: '4px solid #e50914',
+            backdropFilter: 'blur(8px)',
+            padding: '16px',
+            fontSize: '14px',
+            fontWeight: 500,
+          },
+          duration: 3000,
+          icon: '✓',
+        });
+      } else {
+        toast(`"${movieTitle}" added to your watchlist`, {
+          style: {
+            backgroundColor: 'rgba(0, 0, 0, 0.9)',
+            color: 'white',
+            borderLeft: '4px solid #e50914',
+            backdropFilter: 'blur(8px)',
+            padding: '16px',
+            fontSize: '14px', 
+            fontWeight: 500,
+          },
+          duration: 3000,
+          icon: '★',
+        });
+      }
       
     } catch (error) {
       console.error('Error updating watchlist:', error);
-      toast({
-        title: "Error",
-        description: "Failed to update your watchlist",
-        variant: "destructive"
+      toast.error("Failed to update your watchlist", {
+        style: {
+          backgroundColor: 'rgba(0, 0, 0, 0.9)',
+          color: 'white',
+          borderLeft: '4px solid #e50914',
+          backdropFilter: 'blur(8px)',
+        },
+        duration: 3000,
       });
     }
   };
@@ -179,10 +213,14 @@ export default function MovieDetail({ params }: { params: { movieId: string } })
   // Handle download/forward to Telegram
   const handleDownload = async () => {
     if (!movie || !user) {
-      toast({
-        title: "Authentication Required",
-        description: "Please log in to download movies",
-        variant: "destructive"
+      toast.error("Please log in to download movies", {
+        style: {
+          backgroundColor: 'rgba(0, 0, 0, 0.9)',
+          color: 'white',
+          borderLeft: '4px solid #e50914',
+          backdropFilter: 'blur(8px)',
+        },
+        duration: 3000,
       });
       router.push('/login');
       return;
@@ -201,21 +239,32 @@ export default function MovieDetail({ params }: { params: { movieId: string } })
       });
       
       if (response.ok) {
-        toast({
-          title: "Sent to Telegram",
-          description: `"${movie.title}" has been sent to your Telegram account`,
-          variant: "default",
-          className: "border-l-4 border-red-600 bg-black/90 backdrop-blur-sm",
+        toast.success(`"${movie.title}" has been sent to your Telegram account`, {
+          style: {
+            backgroundColor: 'rgba(0, 0, 0, 0.9)',
+            color: 'white',
+            borderLeft: '4px solid #e50914',
+            backdropFilter: 'blur(8px)',
+            padding: '16px',
+            fontSize: '14px',
+            fontWeight: 500,
+          },
+          duration: 3000,
+          icon: '✓',
         });
       } else {
         throw new Error('Failed to send movie');
       }
     } catch (error) {
       console.error("Error forwarding movie:", error);
-      toast({
-        title: "Error",
-        description: "Failed to send movie to Telegram. Please try again.",
-        variant: "destructive"
+      toast.error("Failed to send movie to Telegram. Please try again.", {
+        style: {
+          backgroundColor: 'rgba(0, 0, 0, 0.9)',
+          color: 'white',
+          borderLeft: '4px solid #e50914',
+          backdropFilter: 'blur(8px)',
+        },
+        duration: 3000,
       });
     } finally {
       setDownloadLoading(false);

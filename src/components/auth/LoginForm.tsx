@@ -1,7 +1,7 @@
 'use client';
 
 import { useState, useEffect } from 'react';
-import { useRouter } from 'next/navigation';
+import { useRouter, useSearchParams } from 'next/navigation';
 import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
@@ -12,6 +12,7 @@ import * as z from 'zod';
 import Link from 'next/link';
 import { FileIcon, Lock, User, Film } from 'lucide-react';
 import { toast } from 'sonner';
+import Image from 'next/image';
 
 // Form validation schema
 const formSchema = z.object({
@@ -25,9 +26,12 @@ const formSchema = z.object({
 
 export default function LoginForm() {
   const router = useRouter();
+  const searchParams = useSearchParams();
+  const initialMode = searchParams.get('mode') as 'drive' | 'cinema' || 'cinema';
+  
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
-  const [mode, setMode] = useState<'drive' | 'cinema'>('drive');
+  const [mode, setMode] = useState<'drive' | 'cinema'>(initialMode);
 
   // Check if user is already logged in on component mount
   useEffect(() => {
@@ -79,7 +83,6 @@ export default function LoginForm() {
       });
 
       const data = await response.json();
-      console.log('Login response:', data);
 
       if (!response.ok) {
         throw new Error(data.error || 'Login failed');
@@ -112,42 +115,48 @@ export default function LoginForm() {
   };
 
   return (
-    <div className="flex items-center justify-center min-h-screen bg-background relative overflow-hidden">
-      {/* Colorful background elements */}
-      <div className="absolute top-0 left-0 right-0 bottom-0 opacity-10 overflow-hidden">
-        <div className="absolute top-0 -left-20 w-96 h-96 bg-primary/40 rounded-full filter blur-3xl"></div>
-        <div className="absolute bottom-0 -right-20 w-96 h-96 bg-cyan-500/30 rounded-full filter blur-3xl"></div>
-        <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-96 h-96 bg-pink-500/20 rounded-full filter blur-3xl"></div>
+    <div className="min-h-screen flex items-center justify-center bg-black relative">
+      {/* Background image with overlay */}
+      <div className="absolute inset-0 z-0">
+        <div 
+          className="absolute inset-0 bg-cover bg-center opacity-25"
+          style={{ 
+            backgroundImage: `url('https://assets.nflxext.com/ffe/siteui/vlv3/93da5c27-be66-427c-8b72-5cb39d275279/94eb5ad7-10d8-4cca-bf45-ac52e0a052c0/US-en-20240226-popsignuptwoweeks-perspective_alpha_website_large.jpg')`,
+          }}
+        />
+        <div className="absolute inset-0 bg-gradient-to-t from-black via-black/90 to-black/70"></div>
+      </div>
+      
+      {/* Header */}
+      <div className="fixed top-0 left-0 w-full p-6 z-10">
+        <Link href="/" className="flex items-center gap-2">
+          <Image
+            src="/logo.webp"
+            alt="TeleDrive Logo"
+            width={40}
+            height={40}
+          />
+          <span className="text-2xl font-bold text-red-600">TELEDRIVE</span>
+        </Link>
       </div>
       
       <div className="w-full max-w-md px-4 relative z-10">
-        <div className="flex flex-col items-center mb-6">
-          <div className="bg-gradient-to-r from-primary/20 to-primary/40 p-4 rounded-full mb-4">
-            <FileIcon size={32} className="text-primary" />
-          </div>
-          <h1 className="text-3xl font-bold mb-2 bg-gradient-to-r from-primary via-cyan-400 to-purple-500 bg-clip-text text-transparent">
-            TeleDrive
-          </h1>
-        </div>
-        
-        <Card className="w-full border-border/40 bg-card/80 backdrop-blur-sm shadow-xl">
+        <Card className="w-full bg-black/80 backdrop-blur-sm border border-gray-800 shadow-xl">
           <CardHeader className="pb-4">
-            <CardTitle className="text-2xl text-center bg-gradient-to-r from-white to-gray-400 bg-clip-text text-transparent">
-              Welcome Back
-            </CardTitle>
-            <CardDescription className="text-center text-muted-foreground">
-              Login to access your files
+            <CardTitle className="text-3xl text-white">Sign In</CardTitle>
+            <CardDescription className="text-gray-400">
+              Welcome back to TeleDrive
             </CardDescription>
           </CardHeader>
           
           {/* Mode Toggle */}
           <div className="flex justify-center px-6 pb-4">
-            <div className="flex p-1 bg-muted rounded-full w-full max-w-xs">
+            <div className="flex p-1 bg-gray-900 rounded-full w-full">
               <button
                 className={`flex-1 py-2 px-4 rounded-full text-sm font-medium flex items-center justify-center gap-2 transition-all ${
                   mode === 'drive'
-                    ? 'bg-primary text-white shadow-md'
-                    : 'text-muted-foreground hover:text-foreground'
+                    ? 'bg-red-600 text-white shadow-md'
+                    : 'text-gray-400 hover:text-white'
                 }`}
                 onClick={() => setMode('drive')}
                 type="button"
@@ -158,8 +167,8 @@ export default function LoginForm() {
               <button
                 className={`flex-1 py-2 px-4 rounded-full text-sm font-medium flex items-center justify-center gap-2 transition-all ${
                   mode === 'cinema'
-                    ? 'bg-primary text-white shadow-md'
-                    : 'text-muted-foreground hover:text-foreground'
+                    ? 'bg-red-600 text-white shadow-md'
+                    : 'text-gray-400 hover:text-white'
                 }`}
                 onClick={() => setMode('cinema')}
                 type="button"
@@ -178,18 +187,18 @@ export default function LoginForm() {
                   name="username"
                   render={({ field }) => (
                     <FormItem>
-                      <FormLabel className="text-foreground">Username</FormLabel>
+                      <FormLabel className="text-gray-300">Username</FormLabel>
                       <FormControl>
                         <div className="relative">
                           <Input 
                             placeholder="Enter your Telegram ID" 
-                            className="bg-card pl-10 border-border/40" 
+                            className="bg-gray-800 border-gray-700 text-white pl-10" 
                             {...field} 
                           />
-                          <User className="absolute left-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-muted-foreground" />
+                          <User className="absolute left-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-gray-400" />
                         </div>
                       </FormControl>
-                      <p className="text-xs text-muted-foreground mt-1">
+                      <p className="text-xs text-gray-500 mt-1">
                         Your username is your Telegram ID, sent to you when you added the bot
                       </p>
                       <FormMessage />
@@ -201,19 +210,19 @@ export default function LoginForm() {
                   name="password"
                   render={({ field }) => (
                     <FormItem>
-                      <FormLabel className="text-foreground">Password</FormLabel>
+                      <FormLabel className="text-gray-300">Password</FormLabel>
                       <FormControl>
                         <div className="relative">
                           <Input 
                             type="password" 
                             placeholder="Enter your password" 
-                            className="bg-card pl-10 border-border/40" 
+                            className="bg-gray-800 border-gray-700 text-white pl-10" 
                             {...field} 
                           />
-                          <Lock className="absolute left-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-muted-foreground" />
+                          <Lock className="absolute left-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-gray-400" />
                         </div>
                       </FormControl>
-                      <p className="text-xs text-muted-foreground mt-1">
+                      <p className="text-xs text-gray-500 mt-1">
                         The password was sent to you in Telegram when you added the bot
                       </p>
                       <FormMessage />
@@ -222,26 +231,26 @@ export default function LoginForm() {
                 />
 
                 {error && (
-                  <div className="bg-red-500/10 border border-red-500/20 text-red-500 text-sm p-3 rounded-md">
+                  <div className="bg-red-900/30 border border-red-800 text-red-400 text-sm p-3 rounded-md">
                     {error}
                   </div>
                 )}
 
                 <Button 
                   type="submit" 
-                  className="w-full bg-gradient-to-r from-primary to-purple-600 hover:from-primary/90 hover:to-purple-700 text-white shadow-md" 
+                  className="w-full bg-red-600 hover:bg-red-700 text-white py-6 text-lg" 
                   disabled={isLoading}
                 >
-                  {isLoading ? 'Logging in...' : 'Login'}
+                  {isLoading ? 'Signing In...' : 'Sign In'}
                 </Button>
               </form>
             </Form>
           </CardContent>
-          <CardFooter className="flex flex-col items-center space-y-3 pt-2 pb-4">
+          <CardFooter className="flex flex-col items-center space-y-3 pt-2 pb-6">
             {mode === 'cinema' && (
               <Button 
                 onClick={openTelegramBot}
-                className="w-full mb-2 bg-gradient-to-r from-red-600 to-red-700 hover:from-red-700 hover:to-red-800 text-white flex items-center justify-center gap-2 shadow-md"
+                className="w-full mb-2 bg-blue-600 hover:bg-blue-700 text-white flex items-center justify-center gap-2"
               >
                 <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="lucide lucide-send">
                   <path d="m22 2-7 20-4-9-9-4Z" />
@@ -252,11 +261,11 @@ export default function LoginForm() {
             )}
             <Link 
               href="/" 
-              className="text-sm text-primary hover:text-primary/90 hover:underline transition-colors"
+              className="text-sm text-gray-400 hover:text-white hover:underline transition-colors"
             >
               Go back to home page
             </Link>
-            <p className="text-xs text-muted-foreground max-w-xs text-center bg-card/50 p-2 rounded-md">
+            <p className="text-xs text-gray-500 max-w-xs text-center bg-gray-900/50 p-2 rounded-md mt-4">
               {mode === 'drive' 
                 ? "To get access, add our Telegram bot (@TeloBoxBot) as an admin to your channel"
                 : "For Cinema Mode, sign up through our Telegram bot to get your credentials"
