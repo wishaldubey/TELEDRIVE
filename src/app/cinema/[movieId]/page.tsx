@@ -179,10 +179,14 @@ export default function MovieDetail({ params }: { params: { movieId: string } })
       <header className="fixed top-0 w-full bg-gradient-to-b from-black/80 via-black/60 to-transparent z-50 backdrop-blur-sm">
         <div className="container mx-auto py-4 px-4">
           <div className="flex justify-between items-center">
-            <div className="flex items-center gap-4">
-              <Link href="/cinema" className="text-2xl font-bold text-red-600">
-                TeleCinema
-              </Link>
+          <div className="flex items-center gap-4">
+  <Link
+    href="/cinema"
+    className="text-2xl font-bold text-red-600"
+    style={{ fontFamily: 'BebasNeue' }}
+  >
+    CINEMA
+  </Link>
 
               <nav className="hidden md:flex space-x-6">
                 <Link href="/cinema" className="text-gray-400 hover:text-white transition-colors">
