@@ -1,16 +1,57 @@
-import { cookies } from 'next/headers';
-import { redirect } from 'next/navigation';
+'use client';
+
+import { useEffect, useState } from 'react';
+import { useRouter } from 'next/navigation';
 import { Button } from '@/components/ui/button';
 import Link from 'next/link';
 import Image from 'next/image';
 
-export default async function Home() {
-  const cookieStore = await cookies();
-  const hasAuthToken = cookieStore.has('auth_token');
+export default function Home() {
+  const router = useRouter();
+  const [isLoading, setIsLoading] = useState(true);
   
-  // If user is already logged in, redirect to dashboard
-  if (hasAuthToken) {
-    redirect('/dashboard');
+  // Check if the user is already logged in
+  useEffect(() => {
+    async function checkAuth() {
+      try {
+        const response = await fetch('/api/auth/check');
+        const data = await response.json();
+        
+        // If authenticated, redirect based on user type
+        if (data.authenticated) {
+          if (data.user.channel_id) {
+            router.replace('/dashboard');
+          } else {
+            router.replace('/cinema');
+          }
+          return;
+        }
+      } catch (error) {
+        console.error('Auth check error:', error);
+      }
+      
+      // If not authenticated or error occurred, show the home page
+      setIsLoading(false);
+    }
+    
+    checkAuth();
+  }, [router]);
+  
+  // Show loading state until authentication check completes
+  if (isLoading) {
+    return (
+      <div className="flex items-center justify-center min-h-screen">
+        <div className="animate-pulse">
+          <Image
+            src="/file.svg"
+            alt="TeleDrive Logo"
+            width={48}
+            height={48}
+            className="text-primary"
+          />
+        </div>
+      </div>
+    );
   }
 
   return (

@@ -1,6 +1,6 @@
 'use client';
 
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { useRouter } from 'next/navigation';
 import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
@@ -28,6 +28,34 @@ export default function LoginForm() {
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [mode, setMode] = useState<'drive' | 'cinema'>('drive');
+
+  // Check if user is already logged in on component mount
+  useEffect(() => {
+    const checkAuthStatus = async () => {
+      try {
+        const response = await fetch('/api/auth/check', {
+          method: 'GET',
+        });
+
+        if (response.ok) {
+          const data = await response.json();
+          if (data.authenticated) {
+            // Redirect based on user type
+            if (data.user.channel_id) {
+              router.push('/dashboard');
+            } else {
+              router.push('/cinema');
+            }
+          }
+        }
+      } catch (error) {
+        // Silently fail - user will stay on login page
+        console.error('Auth check failed', error);
+      }
+    };
+
+    checkAuthStatus();
+  }, [router]);
 
   const form = useForm<z.infer<typeof formSchema>>({
     resolver: zodResolver(formSchema),

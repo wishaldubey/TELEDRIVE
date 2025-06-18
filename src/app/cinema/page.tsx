@@ -477,7 +477,7 @@ export default function Cinema() {
                   
                   {/* Banner Content */}
                   <div className="absolute bottom-0 left-0 z-20 p-8 w-full md:w-2/3 lg:w-1/2">
-                    <h1 className="text-4xl md:text-5xl font-bold mb-4">{featuredMovie.title}</h1>
+                    <h1 className="text-4xl md:text-5xl font-bold mb-4 line-clamp-2 md:line-clamp-3" title={featuredMovie.title}>{featuredMovie.title}</h1>
                     
                     <div className="flex items-center space-x-4 mb-4">
                       {featuredMovie.release_year && (

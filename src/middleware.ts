@@ -8,20 +8,43 @@ const PROTECTED_PATHS = ['/dashboard', '/api/files', '/api/download'];
 const DRIVE_MODE_PATHS = ['/dashboard', '/api/files'];
 // Paths that both user types can access (but still need auth)
 const CINEMA_PATHS = ['/cinema', '/api/movies'];
+// Paths that logged-in users should not access (redirect to dashboard)
+const REDIRECT_WHEN_LOGGED_IN = ['/', '/login'];
 
 export async function middleware(request: NextRequest) {
-  // Check if the request is for a protected route
+  // Check the current path
   const path = request.nextUrl.pathname;
   
+  // Get the token from cookies
+  const token = request.cookies.get('auth_token')?.value;
+  
+  // Check if user is logged in and trying to access login or home page
+  if (token && REDIRECT_WHEN_LOGGED_IN.includes(path)) {
+    try {
+      // Verify the token
+      const user = await verifyAuthToken(token);
+      
+      if (user) {
+        // If user has channel_id (Drive user), redirect to dashboard
+        // Otherwise redirect to cinema
+        const redirectUrl = new URL(
+          user.channel_id ? '/dashboard' : '/cinema', 
+          request.url
+        );
+        return NextResponse.redirect(redirectUrl);
+      }
+    } catch (error) {
+      // If token verification fails, continue with the request
+      console.error('Auth middleware error:', error);
+    }
+  }
+
   // If not a protected path, continue
   if (!PROTECTED_PATHS.some(prefix => path.startsWith(prefix)) && 
       !CINEMA_PATHS.some(prefix => path.startsWith(prefix))) {
     return NextResponse.next();
   }
 
-  // Get the token from cookies
-  const token = request.cookies.get('auth_token')?.value;
-  
   // If there's no token, redirect to login
   if (!token) {
     const loginUrl = new URL('/login', request.url);
@@ -55,9 +78,11 @@ export async function middleware(request: NextRequest) {
   }
 }
 
-// Only run middleware on the defined paths
+// Update matcher to include the home page and login page
 export const config = {
   matcher: [
+    '/',
+    '/login',
     '/dashboard/:path*',
     '/api/files/:path*',
     '/api/download/:path*',

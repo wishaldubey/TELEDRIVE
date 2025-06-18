@@ -310,7 +310,7 @@ export default function MovieDetail({ params }: { params: { movieId: string } })
                   
                   {/* Movie information */}
                   <div className="flex-1">
-                    <h1 className="text-4xl font-bold mb-2">{movie.title}</h1>
+                    <h1 className="text-4xl font-bold mb-2 line-clamp-2 md:line-clamp-none" title={movie.title}>{movie.title}</h1>
                     
                     <div className="flex flex-wrap items-center gap-3 text-sm text-gray-300 mb-4">
                       {movie.release_year && (
@@ -388,7 +388,7 @@ export default function MovieDetail({ params }: { params: { movieId: string } })
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-4 text-gray-300">
                   <div>
                     <span className="block text-gray-400">File Name</span>
-                    <span>{movie.file_name}</span>
+                    <span className="block truncate max-w-full hover:whitespace-normal hover:text-clip" title={movie.file_name}>{movie.file_name}</span>
                   </div>
                   <div>
                     <span className="block text-gray-400">Added On</span>
