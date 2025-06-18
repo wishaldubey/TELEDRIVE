@@ -155,8 +155,8 @@ export default function Home() {
             <div className="relative order-1 md:order-2">
               <div className="relative z-10 shadow-2xl rounded-lg overflow-hidden border-4 border-gray-800">
                 <Image 
-                  src="/placeholder-movie.jpg" 
-                  alt="TeleDrive Dashboard" 
+                  src="https://posterspy.com/wp-content/uploads/2022/02/The-Batman_4x5.png" 
+                  alt="THE BATMAN" 
                   width={600} 
                   height={400}
                   className="w-full h-auto"
@@ -178,8 +178,8 @@ export default function Home() {
             <div className="relative">
               <div className="relative z-10 shadow-2xl rounded-lg overflow-hidden border-4 border-gray-800">
                 <Image 
-                  src="/placeholder-movie.jpg" 
-                  alt="TeleDrive Cinema" 
+                  src="https://m.media-amazon.com/images/M/MV5BZTg1Mjg5NjktZTc5Yi00ODc1LTg1N2EtMDhjZmYzYzYwY2ZiXkEyXkFqcGc@._V1_QL75_UX1197_.jpg" 
+                  alt="BHAVESH JOSHI SUPERHERO" 
                   width={600} 
                   height={400}
                   className="w-full h-auto"
