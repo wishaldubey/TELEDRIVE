@@ -51,6 +51,7 @@ export default function LoginForm() {
       });
 
       const data = await response.json();
+      console.log('Login response:', data);
 
       if (!response.ok) {
         throw new Error(data.error || 'Login failed');
@@ -65,10 +66,11 @@ export default function LoginForm() {
           setIsLoading(false);
           return;
         }
-        router.push('/dashboard');
+        // Use direct window location for more reliable redirection
+        window.location.href = '/dashboard';
       } else {
         // Cinema mode works for all users
-        router.push('/cinema');
+        window.location.href = '/cinema';
       }
     } catch (err) {
       setError(err instanceof Error ? err.message : 'Login failed');
