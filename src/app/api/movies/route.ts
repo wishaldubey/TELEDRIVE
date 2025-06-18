@@ -24,12 +24,46 @@ export async function GET(req: NextRequest) {
     const query: any = {};
     
     if (searchQuery) {
-      // Search in title with case-insensitive regex
-      query.title = { $regex: searchQuery, $options: "i" };
+      // Improve search with better text matching
+      // Use text index if available, otherwise more sophisticated regex
+      try {
+        // First try with a simple case-insensitive regex for exact matches
+        const exactMatchQuery = { title: { $regex: `\\b${searchQuery}\\b`, $options: "i" } };
+        const exactMatches = await db.collection("movies").countDocuments(exactMatchQuery);
+        
+        // If exact matches found, use that query
+        if (exactMatches > 0) {
+          query.title = { $regex: `\\b${searchQuery}\\b`, $options: "i" };
+        } else {
+          // Try a more lenient search for partial matches
+          const words = searchQuery.split(/\s+/).filter(word => word.length > 2);
+          
+          if (words.length > 1) {
+            // For multi-word search, use $and to match all words
+            const wordConditions = words.map(word => ({
+              title: { $regex: word, $options: "i" }
+            }));
+            query.$and = wordConditions;
+          } else {
+            // For single word, use simple partial match
+            query.title = { $regex: searchQuery, $options: "i" };
+          }
+        }
+      } catch (error) {
+        console.error("Error with advanced search:", error);
+        // Fallback to simple search
+        query.title = { $regex: searchQuery, $options: "i" };
+      }
     }
     
     if (genre) {
-      query.genres = { $in: [genre] };
+      // Make genre matching more reliable - convert to lowercase for consistency
+      const normalizedGenre = genre.toLowerCase();
+      query.genres = { 
+        $elemMatch: { 
+          $regex: new RegExp(normalizedGenre, "i")
+        } 
+      };
     }
     
     if (year) {

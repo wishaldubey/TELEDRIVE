@@ -94,6 +94,7 @@ export default function Cinema() {
   const [showFilters, setShowFilters] = useState(false);
   const [watchlist, setWatchlist] = useState<string[]>([]);
   const [loadingWatchlist, setLoadingWatchlist] = useState(false);
+  const [isSearchTooShort, setIsSearchTooShort] = useState(false);
   
   const router = useRouter();
   const searchParams = useSearchParams();
@@ -241,8 +242,16 @@ export default function Cinema() {
   // Handle search input changes
   useEffect(() => {
     if (debouncedSearchTerm !== search) {
+      // Check if search term is too short but not empty
+      if (debouncedSearchTerm && debouncedSearchTerm.length < 3) {
+        setIsSearchTooShort(true);
+        return;
+      } else {
+        setIsSearchTooShort(false);
+      }
+      
       const params = new URLSearchParams(searchParams);
-      if (debouncedSearchTerm) {
+      if (debouncedSearchTerm && debouncedSearchTerm.length >= 3) {
         params.set("search", debouncedSearchTerm);
       } else {
         params.delete("search");
@@ -253,7 +262,23 @@ export default function Cinema() {
   
   // Handle search change
   const handleSearchChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-    setSearchTerm(e.target.value);
+    const value = e.target.value;
+    setSearchTerm(value);
+    
+    // Check if search term is too short but not empty
+    if (value && value.length > 0 && value.length < 3) {
+      setIsSearchTooShort(true);
+      // Show toast only once when initially typing less than 3 chars
+      if (!isSearchTooShort) {
+        toast({
+          title: "Enter at least 3 characters",
+          description: "Please type at least 3 characters to search",
+          variant: "default"
+        });
+      }
+    } else {
+      setIsSearchTooShort(false);
+    }
   };
   
   // Handle genre selection
@@ -323,6 +348,44 @@ export default function Cinema() {
     }
   }, [search, genre, year]);
   
+  // Fetch movies by genre for the homepage
+  useEffect(() => {
+    const fetchMoviesByGenre = async () => {
+      if (search || genre || year) return;
+      
+      try {
+        // Get the top genres from the genres array (if available)
+        const topGenres = genres.slice(0, 8).filter(Boolean);
+        const genreMoviesMap: Record<string, Movie[]> = {};
+        
+        // Fetch movies for each genre
+        await Promise.all(topGenres.map(async (genreName) => {
+          const params = new URLSearchParams();
+          params.set("genre", genreName);
+          params.set("limit", "12"); // Request more movies per genre
+          
+          const response = await fetch(`/api/movies?${params.toString()}`);
+          
+          if (response.ok) {
+            const data = await response.json();
+            if (data.movies && data.movies.length > 0) {
+              genreMoviesMap[genreName] = data.movies;
+            }
+          }
+        }));
+        
+        setMoviesByGenre(genreMoviesMap);
+      } catch (error) {
+        console.error('Error fetching movies by genre:', error);
+      }
+    };
+    
+    // Only run if we have genres and we're on the main page
+    if (genres.length > 0 && !search && !genre && !year) {
+      fetchMoviesByGenre();
+    }
+  }, [genres, search, genre, year]);
+
   // Fetch movies
   useEffect(() => {
     const fetchMovies = async () => {
@@ -357,24 +420,6 @@ export default function Cinema() {
         } else {
           setFeaturedMovie(null);
         }
-        
-        // Group movies by genre
-        const groupedByGenre: Record<string, Movie[]> = {};
-        if (!search && !genre && !year) {
-          data.movies.forEach((movie: Movie) => {
-            if (movie.genres && movie.genres.length) {
-              movie.genres.forEach((g: string) => {
-                if (!g) return;
-                if (!groupedByGenre[g]) {
-                  groupedByGenre[g] = [];
-                }
-                groupedByGenre[g].push(movie);
-              });
-            }
-          });
-        }
-        setMoviesByGenre(groupedByGenre);
-        
       } catch (err: any) {
         setError(err.message || "An error occurred");
         console.error("Error fetching movies:", err);
@@ -394,7 +439,27 @@ export default function Cinema() {
   // Handle search input
   const handleSearch = (e: React.FormEvent) => {
     e.preventDefault();
+    
+    if (searchTerm.length < 3 && searchTerm.length > 0) {
+      setIsSearchTooShort(true);
+      toast({
+        title: "Enter at least 3 characters",
+        description: "Please type at least 3 characters to search",
+        variant: "default"
+      });
+      return;
+    }
+    
+    setIsSearchTooShort(false);
+    const params = new URLSearchParams(searchParams);
+    if (searchTerm && searchTerm.length >= 3) {
+      params.set("search", searchTerm);
+    } else {
+      params.delete("search");
+    }
+    
     setCurrentPage(1); // Reset to page 1 when search changes
+    router.push(`/cinema?${params.toString()}`);
   };
 
   // Handle pagination
@@ -452,7 +517,7 @@ export default function Cinema() {
       <div className="mb-12">
         <div className="flex justify-between items-center mb-4">
           <h2 className="text-2xl font-bold">{title}</h2>
-          {seeAllUrl && (
+          {seeAllUrl && movies.length > 8 && (
             <Link 
               href={seeAllUrl}
               className="text-sm text-gray-400 hover:text-white transition-colors"
@@ -463,7 +528,7 @@ export default function Cinema() {
         </div>
         <div className="relative">
           <div className="flex space-x-4 overflow-x-auto pb-4 no-scrollbar">
-            {movies.slice(0, 8).map((movie) => (
+            {movies.map((movie) => (
               <MovieCard key={movie._id} movie={movie} />
             ))}
           </div>
@@ -502,18 +567,26 @@ export default function Cinema() {
             <div className="flex items-center space-x-4">
               {/* Search form */}
               <form onSubmit={handleSearch} className="flex items-center">
-                <Input 
-                  type="search"
-                  placeholder="Search titles..."
-                  value={searchTerm}
-                  onChange={handleSearchChange}
-                  className="bg-black/30 border-gray-700 text-white w-32 md:w-64 h-9"
-                />
+                <div className="relative">
+                  <Input 
+                    type="search"
+                    placeholder="Search titles..."
+                    value={searchTerm}
+                    onChange={handleSearchChange}
+                    className={`bg-black/30 border-gray-700 text-white w-32 md:w-64 h-9 ${isSearchTooShort ? 'border-red-500' : ''}`}
+                  />
+                  {isSearchTooShort && (
+                    <span className="absolute -bottom-5 left-0 text-red-500 text-xs">
+                      Enter at least 3 characters
+                    </span>
+                  )}
+                </div>
                 <Button 
                   type="submit" 
                   variant="ghost"
                   size="icon"
                   className="ml-1 text-gray-400 hover:text-white"
+                  disabled={isSearchTooShort}
                 >
                   <Search size={18} />
                 </Button>
@@ -827,16 +900,17 @@ export default function Cinema() {
                     )}
                     
                     {/* Genre-based Categories */}
-                    {Object.entries(moviesByGenre).map(([category, categoryMovies]) => (
-                      categoryMovies.length > 0 && (
+                    {Object.entries(moviesByGenre)
+                      .filter(([_, categoryMovies]) => categoryMovies.length >= 2) // Only show genres with 2 or more movies
+                      .map(([category, categoryMovies]) => (
                         <MovieSection 
                           key={category} 
                           title={category} 
-                          movies={categoryMovies} 
+                          movies={categoryMovies.slice(0, 12)} // Show up to 12 movies per row (previously it was limited by the MovieSection component)
                           seeAllUrl={`/cinema?genre=${encodeURIComponent(category)}`}
                         />
                       )
-                    ))}
+                    )}
                   </div>
                 </div>
               )}

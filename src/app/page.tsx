@@ -103,7 +103,7 @@ export default function Home() {
           </h1>
           
           <p className="text-xl md:text-2xl mb-8">
-            Watch anywhere. Download anything. Cancel anytime.
+            Watch anywhere. Download anything.
           </p>
           
           <p className="text-lg md:text-xl text-gray-300 mb-8 max-w-3xl mx-auto">
@@ -205,10 +205,7 @@ export default function Home() {
                   <CheckCircle className="h-6 w-6 text-red-600" />
                   <span className="text-lg">Create your personal watchlist</span>
                 </li>
-                <li className="flex items-center gap-3">
-                  <CheckCircle className="h-6 w-6 text-red-600" />
-                  <span className="text-lg">Download movies directly to your device</span>
-                </li>
+               
               </ul>
             </div>
           </div>
@@ -316,7 +313,7 @@ export default function Home() {
             Ready to browse your files and movies?
           </h2>
           <p className="text-xl md:text-2xl text-gray-300 mb-10 max-w-3xl mx-auto">
-            Start organizing your Telegram files or enjoy streaming your favorite movies today.
+            Start organizing your Telegram files or enjoy downloading your favorite movies today.
           </p>
           
           <div className="flex flex-col sm:flex-row justify-center gap-6">
