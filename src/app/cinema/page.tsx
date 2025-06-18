@@ -288,7 +288,7 @@ export default function Cinema() {
           <div className="flex justify-between items-center">
             <div className="flex items-center gap-4">
               <Link href="/cinema" className="text-2xl font-bold text-red-600">
-                TeleCinema
+                CINEMA
               </Link>
 
               <nav className="hidden md:flex space-x-6">

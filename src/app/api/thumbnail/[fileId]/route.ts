@@ -17,6 +17,7 @@ export async function GET(
     
     // Check if this is a public request (no auth needed)
     const isPublic = request.nextUrl.searchParams.get('public') === 'true';
+    const isDirect = request.nextUrl.searchParams.get('direct') === 'true';
     let userId = null;
     let fileData = null;
     
@@ -104,6 +105,13 @@ export async function GET(
     const headers = new Headers();
     headers.set('Content-Type', 'image/jpeg');
     headers.set('Cache-Control', 'public, max-age=86400'); // Cache for 24 hours
+    
+    // For direct access, add CORS headers
+    if (isDirect) {
+      headers.set('Access-Control-Allow-Origin', '*');
+      headers.set('Access-Control-Allow-Methods', 'GET');
+      headers.set('Access-Control-Allow-Headers', 'Content-Type');
+    }
     
     // Return the thumbnail as a buffer instead of streaming
     return new NextResponse(arrayBuffer, {

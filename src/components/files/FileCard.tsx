@@ -160,7 +160,8 @@ export default function FileCard({ file }: FileCardProps) {
   
   // Check if thumbnail is available
   const hasThumbnail = !!file.thumb_file_id && !thumbnailError;
-  const thumbnailUrl = hasThumbnail ? `/api/thumbnail/${file.file_id}` : '';
+  // Use direct URL to thumbnail API
+  const thumbnailUrl = hasThumbnail ? `/api/thumbnail/${file.file_id}?direct=true` : '';
   
   // Determine if the filename needs extension display
   const shouldShowExtension = () => {
@@ -179,11 +180,16 @@ export default function FileCard({ file }: FileCardProps) {
       <Card className="w-full h-full transition-all duration-300 hover:border-primary/50 hover:shadow-md hover:shadow-primary/10 flex flex-col group hover-scale hover-glow">
         <CardHeader className="pb-2 space-y-0">
           <div className="flex items-center justify-between">
-            <div className="w-full truncate-text max-w-full pr-2" title={fileName}>
-              <span className="text-base font-medium">{fileName}</span>
-              {shouldShowExtension() && (
-                <span className="text-muted-foreground">{file.file_extension}</span>
-              )}
+            <div className="w-full max-w-full pr-2 overflow-hidden" title={fileName}>
+              <div className="truncate text-base font-medium">
+                {fileName.length > 10 ? 
+                  `${fileName.substring(0, 10)}...` : 
+                  fileName
+                }
+                {shouldShowExtension() && (
+                  <span className="text-muted-foreground">{file.file_extension}</span>
+                )}
+              </div>
             </div>
             <Badge 
               className="ml-1 flex-shrink-0" 
@@ -205,6 +211,9 @@ export default function FileCard({ file }: FileCardProps) {
                   sizes="(max-width: 768px) 100vw, 300px"
                   className="object-contain transition-transform group-hover:scale-105 duration-500"
                   onError={() => setThumbnailError(true)}
+                  unoptimized={true} // Skip Next.js image optimization
+                  placeholder="blur"
+                  blurDataURL="data:image/svg+xml;base64,PHN2ZyB3aWR0aD0iMTAwJSIgaGVpZ2h0PSIxMDAlIiB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciPjxyZWN0IHdpZHRoPSIxMDAlIiBoZWlnaHQ9IjEwMCUiIGZpbGw9IiMzMzMzMzMiLz48L3N2Zz4="
                 />
               </div>
             ) : (

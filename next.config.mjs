@@ -33,6 +33,7 @@ const nextConfig = {
         pathname: '/**',
       },
     ],
+    unoptimized: true, // Disable image optimization for better compatibility
   },
   // Output standalone build for better optimization
   output: 'standalone',
