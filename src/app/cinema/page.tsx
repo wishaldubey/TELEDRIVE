@@ -726,8 +726,25 @@ export default function Cinema() {
         {/* Content */}
         <div className="container mx-auto">
           {loading ? (
-            <div className="flex justify-center items-center min-h-[50vh]">
-              <img src="/loader.gif" alt="Loading..." className="w-22 h-22" />
+            <div className="min-h-[50vh]">
+              {/* Movie Categories Skeleton */}
+              <div className="px-4 md:px-12 py-8">
+                <div className="container mx-auto">
+                  {[1, 2, 3].map((i) => (
+                    <div key={i} className="mb-12">
+                      <div className="w-48 h-8 bg-gray-800 rounded-md animate-pulse mb-6" />
+                      <div className="grid grid-flow-col auto-cols-max gap-4 overflow-x-auto no-scrollbar">
+                        {Array.from({ length: 6 }).map((_, j) => (
+                          <div key={j} className="w-60">
+                            <div className="w-full aspect-[2/3] bg-gray-800 rounded-md animate-pulse mb-2" />
+                            <div className="w-3/4 h-6 bg-gray-800 rounded-md animate-pulse" />
+                          </div>
+                        ))}
+                      </div>
+                    </div>
+                  ))}
+                </div>
+              </div>
             </div>
           ) : error ? (
             <div className="text-center py-20">

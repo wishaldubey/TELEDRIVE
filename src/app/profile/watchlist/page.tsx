@@ -170,8 +170,14 @@ export default function Watchlist() {
       <main className="pt-24 pb-10">
         <div className="container mx-auto px-4">
           {loading ? (
-            <div className="flex justify-center items-center min-h-[50vh]">
-              <img src="/loader.gif" alt="Loading..." className="w-22 h-22" />
+            <div className="min-h-[50vh]">
+              <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 xl:grid-cols-6 gap-4">
+                {Array.from({ length: 12 }).map((_, i) => (
+                  <div key={i} className="overflow-hidden rounded-md aspect-[2/3]">
+                    <div className="w-full h-full bg-gray-800 rounded-md animate-pulse"></div>
+                  </div>
+                ))}
+              </div>
             </div>
           ) : error ? (
             <div className="text-center py-20">

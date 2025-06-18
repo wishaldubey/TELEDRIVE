@@ -5,7 +5,7 @@ import { useRouter } from "next/navigation";
 import Link from "next/link";
 import { Button } from "@/components/ui/button";
 import { Loader } from "@/components/ui/loader";
-import { LogOut, Film, ArrowLeft, Download, Calendar, Star, Tag, Flag, Clock } from "lucide-react";
+import { LogOut, Film, ArrowLeft, Download, Calendar, Star, Tag, Flag, Clock, Loader2 } from "lucide-react";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import {
   DropdownMenu,
@@ -421,8 +421,53 @@ export default function MovieDetail({ params }: { params: { movieId: string } })
       {/* Main content - added pt-24 to ensure content doesn't get hidden under the fixed header */}
       <main className="pt-24">
         {loading ? (
-          <div className="flex justify-center items-center min-h-screen">
-            <img src="/loader.gif" alt="Loading..." className="w-16 h-16" />
+          <div className="min-h-screen">
+            {/* Movie Details Skeleton */}
+            <div className="container mx-auto px-4 mb-4">
+              <div className="w-24 h-10 bg-gray-800 rounded-md animate-pulse"></div>
+            </div>
+            
+            <div className="relative h-[70vh] w-full mt-4">
+              {/* Backdrop skeleton */}
+              <div className="absolute inset-0 bg-gray-900 animate-pulse"></div>
+              <div className="absolute inset-0 bg-gradient-to-t from-black via-black/80 to-transparent"></div>
+              
+              {/* Movie details skeleton */}
+              <div className="container mx-auto px-4 relative h-full flex flex-col justify-end pb-16">
+                <div className="flex flex-col md:flex-row gap-8 items-start">
+                  {/* Movie poster skeleton */}
+                  <div className="w-48 h-72 rounded-md bg-gray-800 animate-pulse flex-shrink-0 hidden md:block"></div>
+                  
+                  {/* Movie information skeleton */}
+                  <div className="flex-1">
+                    <div className="w-3/4 h-10 bg-gray-800 rounded-md animate-pulse mb-4"></div>
+                    
+                    <div className="flex flex-wrap gap-3 mb-4">
+                      {[1, 2, 3, 4].map(i => (
+                        <div key={i} className="w-20 h-6 bg-gray-800 rounded-md animate-pulse"></div>
+                      ))}
+                    </div>
+                    
+                    <div className="flex flex-wrap gap-2 mb-6">
+                      {[1, 2, 3].map(i => (
+                        <div key={i} className="w-24 h-8 bg-gray-800 rounded-full animate-pulse"></div>
+                      ))}
+                    </div>
+                    
+                    <div className="space-y-2 mb-8">
+                      <div className="w-full h-4 bg-gray-800 rounded animate-pulse"></div>
+                      <div className="w-full h-4 bg-gray-800 rounded animate-pulse"></div>
+                      <div className="w-2/3 h-4 bg-gray-800 rounded animate-pulse"></div>
+                    </div>
+                    
+                    <div className="flex flex-wrap gap-3">
+                      <div className="w-40 h-10 bg-gray-800 rounded-md animate-pulse"></div>
+                      <div className="w-40 h-10 bg-gray-800 rounded-md animate-pulse"></div>
+                    </div>
+                  </div>
+                </div>
+              </div>
+            </div>
           </div>
         ) : error ? (
           <div className="flex flex-col justify-center items-center min-h-screen p-4">
@@ -539,7 +584,7 @@ export default function MovieDetail({ params }: { params: { movieId: string } })
                       >
                         {downloadLoading ? (
                           <>
-                            <img src="/loader.gif" alt="Loading..." className="mr-2 h-5 w-5" />
+                            <Loader2 className="mr-2 h-5 w-5 animate-spin" />
                             Sending to Telegram...
                           </>
                         ) : (
