@@ -17,6 +17,7 @@ import {
   DialogFooter
 } from "@/components/ui/dialog";
 import { formatBytes } from '@/lib/utils';
+import { useToast } from '@/components/ui/use-toast';
 
 interface FileCardProps {
   file: FileData;
@@ -27,6 +28,8 @@ export default function FileCard({ file }: FileCardProps) {
   const [showLargeFileDialog, setShowLargeFileDialog] = useState(false);
   const [sendingToTelegram, setSendingToTelegram] = useState(false);
   const [thumbnailError, setThumbnailError] = useState(false);
+  
+  const { toast } = useToast();
   
   // Get file type color with enhanced colors
   const getFileIcon = (fileType: string) => {
@@ -127,8 +130,16 @@ export default function FileCard({ file }: FileCardProps) {
       
       // Close dialog on success
       setShowLargeFileDialog(false);
+      toast({
+        title: 'Success',
+        description: 'File sent to Telegram successfully!',
+      });
     } catch (error) {
       console.error('Error sending file to Telegram:', error);
+      toast({
+        title: 'Error',
+        description: 'Failed to send file to Telegram.',
+      });
     } finally {
       setSendingToTelegram(false);
     }

@@ -18,13 +18,14 @@ import {
 } from "@/components/ui/card";
 import { Loader } from "@/components/ui/loader";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
-import { LogOut, Film, Search } from "lucide-react";
+import { LogOut, Film, Search, Star } from "lucide-react";
 import {
   DropdownMenu,
   DropdownMenuContent,
   DropdownMenuItem,
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
+import { useToast } from "@/components/ui/use-toast";
 
 // Define interface for movie data
 interface Movie {
@@ -38,6 +39,7 @@ interface Movie {
   file_name: string;
   message_id: number;
   uploaded_at: string;
+  downloads?: string[];
 }
 
 interface MovieApiResponse {
@@ -80,6 +82,8 @@ export default function Cinema() {
   const [years, setYears] = useState<number[]>([]);
   const [featuredMovie, setFeaturedMovie] = useState<Movie | null>(null);
   const [moviesByGenre, setMoviesByGenre] = useState<Record<string, Movie[]>>({});
+  const [recentMovies, setRecentMovies] = useState<Movie[]>([]);
+  const [trendingMovies, setTrendingMovies] = useState<Movie[]>([]);
   const [searchTerm, setSearchTerm] = useState("");
   const [selectedGenre, setSelectedGenre] = useState("");
   const [selectedYear, setSelectedYear] = useState("");
@@ -88,9 +92,12 @@ export default function Cinema() {
   const [totalPages, setTotalPages] = useState(1);
   const [user, setUser] = useState<any>(null);
   const [showFilters, setShowFilters] = useState(false);
+  const [watchlist, setWatchlist] = useState<string[]>([]);
+  const [loadingWatchlist, setLoadingWatchlist] = useState(false);
   
   const router = useRouter();
   const searchParams = useSearchParams();
+  const { toast } = useToast();
   
   // Get search parameters
   const search = searchParams.get("search") || "";
@@ -110,6 +117,7 @@ export default function Cinema() {
           const data = await response.json();
           if (data.success) {
             setUser(data);
+            fetchWatchlist(); // Fetch watchlist after getting user data
           }
         }
       } catch (error) {
@@ -119,6 +127,83 @@ export default function Cinema() {
 
     fetchUserData();
   }, []);
+
+  // Fetch user's watchlist
+  const fetchWatchlist = async () => {
+    if (loadingWatchlist) return;
+    
+    setLoadingWatchlist(true);
+    try {
+      const response = await fetch('/api/user/watchlist/get');
+      if (response.ok) {
+        const data = await response.json();
+        if (data.success && data.movies) {
+          // Extract only the movie IDs for easy checking
+          const watchlistIds = data.movies.map((movie: Movie) => movie._id);
+          setWatchlist(watchlistIds);
+        }
+      }
+    } catch (error) {
+      console.error('Error fetching watchlist:', error);
+    } finally {
+      setLoadingWatchlist(false);
+    }
+  };
+  
+  // Toggle watchlist status for a movie
+  const toggleWatchlist = async (movieId: string, isCurrentlyInWatchlist: boolean) => {
+    if (!user) {
+      toast({
+        title: "Authentication Required",
+        description: "Please log in to add movies to your watchlist",
+        variant: "destructive"
+      });
+      router.push('/login');
+      return;
+    }
+    
+    // Optimistic UI update
+    if (isCurrentlyInWatchlist) {
+      setWatchlist(watchlist.filter(id => id !== movieId));
+    } else {
+      setWatchlist([...watchlist, movieId]);
+    }
+    
+    try {
+      const endpoint = isCurrentlyInWatchlist ? 'remove' : 'add';
+      const response = await fetch(`/api/user/watchlist/${endpoint}`, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json'
+        },
+        body: JSON.stringify({ movieId })
+      });
+      
+      if (!response.ok) {
+        // Revert optimistic update on error
+        if (isCurrentlyInWatchlist) {
+          setWatchlist([...watchlist, movieId]);
+        } else {
+          setWatchlist(watchlist.filter(id => id !== movieId));
+        }
+        
+        throw new Error('Failed to update watchlist');
+      }
+      
+      toast({
+        title: isCurrentlyInWatchlist ? "Removed from Watchlist" : "Added to Watchlist",
+        description: isCurrentlyInWatchlist ? "Movie removed from your watchlist" : "Movie added to your watchlist",
+      });
+      
+    } catch (error) {
+      console.error('Error updating watchlist:', error);
+      toast({
+        title: "Error",
+        description: "Failed to update your watchlist",
+        variant: "destructive"
+      });
+    }
+  };
 
   // Handle logout
   const handleLogout = async () => {
@@ -200,6 +285,44 @@ export default function Cinema() {
     router.push(`/cinema?${params.toString()}`);
   };
   
+  // Fetch recently added movies
+  useEffect(() => {
+    const fetchRecentMovies = async () => {
+      try {
+        const response = await fetch('/api/movies?sort=date&limit=20');
+        if (response.ok) {
+          const data = await response.json();
+          setRecentMovies(data.movies || []);
+        }
+      } catch (error) {
+        console.error('Error fetching recent movies:', error);
+      }
+    };
+    
+    if (!search && !genre && !year) {
+      fetchRecentMovies();
+    }
+  }, [search, genre, year]);
+  
+  // Fetch trending movies
+  useEffect(() => {
+    const fetchTrendingMovies = async () => {
+      try {
+        const response = await fetch('/api/movies/trending?limit=20');
+        if (response.ok) {
+          const data = await response.json();
+          setTrendingMovies(data.movies || []);
+        }
+      } catch (error) {
+        console.error('Error fetching trending movies:', error);
+      }
+    };
+    
+    if (!search && !genre && !year) {
+      fetchTrendingMovies();
+    }
+  }, [search, genre, year]);
+  
   // Fetch movies
   useEffect(() => {
     const fetchMovies = async () => {
@@ -278,6 +401,75 @@ export default function Cinema() {
   const goToPage = (page: number) => {
     setCurrentPage(page);
     window.scrollTo(0, 0); // Scroll to top when changing page
+  };
+  
+  // Movie card component with watchlist functionality
+  const MovieCard = ({ movie }: { movie: Movie }) => {
+    const isInWatchlist = watchlist.includes(movie._id);
+    
+    return (
+      <Link key={movie._id} href={`/cinema/${movie._id}`} className="flex-none w-[180px] group">
+        <div className="overflow-hidden rounded-md aspect-[2/3] relative">
+          <img 
+            src={`/api/movies/thumbnail/${movie._id}`} 
+            alt={movie.title}
+            className="w-full h-full object-cover transform group-hover:scale-105 transition-transform duration-300"
+            loading="lazy"
+          />
+          <div className="absolute inset-0 bg-gradient-to-t from-black/90 via-transparent to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-300 flex flex-col justify-end p-3">
+            <p className="font-medium line-clamp-2">{movie.title}</p>
+            <div className="flex items-center justify-between text-xs text-gray-300 mt-1">
+              <span>{movie.release_year}</span>
+              {movie.vote_average && (
+                <span>⭐ {movie.vote_average.toFixed(1)}</span>
+              )}
+            </div>
+          </div>
+          <button 
+            className="absolute top-2 right-2 z-20 p-1 rounded-full bg-black/50 opacity-0 group-hover:opacity-100 transition-opacity duration-300"
+            onClick={(e) => {
+              e.preventDefault(); // Stop the link navigation
+              toggleWatchlist(movie._id, isInWatchlist);
+            }}
+            aria-label={isInWatchlist ? "Remove from watchlist" : "Add to watchlist"}
+          >
+            {isInWatchlist ? (
+              <Star className="h-5 w-5 fill-yellow-400 text-yellow-400" />
+            ) : (
+              <Star className="h-5 w-5 text-white hover:text-yellow-400" />
+            )}
+          </button>
+        </div>
+      </Link>
+    );
+  };
+  
+  // Movie Section component for consistent layout
+  const MovieSection = ({ title, movies, seeAllUrl }: { title: string, movies: Movie[], seeAllUrl?: string }) => {
+    if (!movies.length) return null;
+    
+    return (
+      <div className="mb-12">
+        <div className="flex justify-between items-center mb-4">
+          <h2 className="text-2xl font-bold">{title}</h2>
+          {seeAllUrl && (
+            <Link 
+              href={seeAllUrl}
+              className="text-sm text-gray-400 hover:text-white transition-colors"
+            >
+              View All
+            </Link>
+          )}
+        </div>
+        <div className="relative">
+          <div className="flex space-x-4 overflow-x-auto pb-4 no-scrollbar">
+            {movies.slice(0, 8).map((movie) => (
+              <MovieCard key={movie._id} movie={movie} />
+            ))}
+          </div>
+        </div>
+      </div>
+    );
   };
 
   return (
@@ -362,6 +554,15 @@ export default function Cinema() {
                       </span>
                     </div>
                   </div>
+                  
+                  {/* Link to Watchlist */}
+                  <DropdownMenuItem 
+                    className="cursor-pointer hover:bg-gray-800 text-sm"
+                    onClick={() => router.push('/profile/watchlist')}
+                  >
+                    <Star className="mr-2 h-4 w-4" />
+                    <span>My Watchlist</span>
+                  </DropdownMenuItem>
                   
                   {/* If the user has Drive Mode access, show link to dashboard */}
                   {user?.channel_id && (
@@ -501,6 +702,26 @@ export default function Cinema() {
                     >
                       Pirate Now
                     </Link>
+                    
+                    <button 
+                      className="ml-4 inline-flex items-center bg-gray-800 hover:bg-gray-700 text-white font-bold py-3 px-6 rounded transition-colors"
+                      onClick={(e) => {
+                        e.preventDefault();
+                        toggleWatchlist(featuredMovie._id, watchlist.includes(featuredMovie._id));
+                      }}
+                    >
+                      {watchlist.includes(featuredMovie._id) ? (
+                        <>
+                          <Star className="h-5 w-5 fill-yellow-400 text-yellow-400 mr-2" />
+                          <span>In Watchlist</span>
+                        </>
+                      ) : (
+                        <>
+                          <Star className="h-5 w-5 mr-2" />
+                          <span>Add to Watchlist</span>
+                        </>
+                      )}
+                    </button>
                   </div>
                 </div>
               )}
@@ -520,24 +741,7 @@ export default function Cinema() {
                   ) : (
                     <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 xl:grid-cols-6 gap-4">
                       {movies.map((movie) => (
-                        <Link key={movie._id} href={`/cinema/${movie._id}`} className="group">
-                          <div className="overflow-hidden rounded-md aspect-[2/3] relative">
-                            <img 
-                              src={`/api/movies/thumbnail/${movie._id}`} 
-                              alt={movie.title}
-                              className="w-full h-full object-cover transform group-hover:scale-105 transition-transform duration-300"
-                            />
-                            <div className="absolute inset-0 bg-gradient-to-t from-black/90 via-transparent to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-300 flex flex-col justify-end p-3">
-                              <p className="font-medium line-clamp-2">{movie.title}</p>
-                              <div className="flex items-center justify-between text-xs text-gray-300 mt-1">
-                                <span>{movie.release_year}</span>
-                                {movie.vote_average && (
-                                  <span>⭐ {movie.vote_average.toFixed(1)}</span>
-                                )}
-                              </div>
-                            </div>
-                          </div>
-                        </Link>
+                        <MovieCard key={movie._id} movie={movie} />
                       ))}
                     </div>
                   )}
@@ -608,48 +812,29 @@ export default function Cinema() {
                 </div>
               )}
 
-              {/* Movie Categories */}
-              {!search && !genre && !year && Object.keys(moviesByGenre).length > 0 && (
+              {/* Movie Categories (only shown on main view) */}
+              {!search && !genre && !year && (
                 <div className="relative z-10 px-4 md:px-12 pb-20">
                   <div className="container mx-auto">
+                    {/* Trending Movies Section */}
+                    {trendingMovies.length > 0 && (
+                      <MovieSection title="🔥 Trending Now" movies={trendingMovies} />
+                    )}
+                    
+                    {/* Recently Added Section */}
+                    {recentMovies.length > 0 && (
+                      <MovieSection title="🎬 Recently Added" movies={recentMovies} />
+                    )}
+                    
+                    {/* Genre-based Categories */}
                     {Object.entries(moviesByGenre).map(([category, categoryMovies]) => (
                       categoryMovies.length > 0 && (
-                        <div key={category} className="mb-12">
-                          <div className="flex justify-between items-center mb-4">
-                            <h2 className="text-2xl font-bold">{category}</h2>
-                            <Link 
-                              href={`/cinema?genre=${encodeURIComponent(category)}`}
-                              className="text-sm text-gray-400 hover:text-white transition-colors"
-                            >
-                              View All
-                            </Link>
-                          </div>
-                          <div className="relative">
-                            <div className="flex space-x-4 overflow-x-auto pb-4 no-scrollbar">
-                              {categoryMovies.slice(0, 8).map((movie) => (
-                                <Link key={movie._id} href={`/cinema/${movie._id}`} className="flex-none w-[180px] group">
-                                  <div className="overflow-hidden rounded-md aspect-[2/3] relative">
-                                    <img 
-                                      src={`/api/movies/thumbnail/${movie._id}`} 
-                                      alt={movie.title}
-                                      className="w-full h-full object-cover transform group-hover:scale-105 transition-transform duration-300"
-                                      loading="lazy"
-                                    />
-                                    <div className="absolute inset-0 bg-gradient-to-t from-black/90 via-transparent to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-300 flex flex-col justify-end p-3">
-                                      <p className="font-medium line-clamp-2">{movie.title}</p>
-                                      <div className="flex items-center justify-between text-xs text-gray-300 mt-1">
-                                        <span>{movie.release_year}</span>
-                                        {movie.vote_average && (
-                                          <span>⭐ {movie.vote_average.toFixed(1)}</span>
-                                        )}
-                                      </div>
-                                    </div>
-                                  </div>
-                                </Link>
-                              ))}
-                            </div>
-                          </div>
-                        </div>
+                        <MovieSection 
+                          key={category} 
+                          title={category} 
+                          movies={categoryMovies} 
+                          seeAllUrl={`/cinema?genre=${encodeURIComponent(category)}`}
+                        />
                       )
                     ))}
                   </div>

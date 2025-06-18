@@ -13,6 +13,7 @@ import {
   DropdownMenuItem,
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
+import { useToast } from "@/components/ui/use-toast";
 import { use } from "react";
 
 interface Movie {
@@ -30,10 +31,13 @@ interface Movie {
   uploaded_at: string;
   runtime?: number;
   country?: string;
+  downloads?: string[];
 }
 
 export default function MovieDetail({ params }: { params: { movieId: string } }) {
   const router = useRouter();
+  const { toast } = useToast();
+  
   // Get movieId directly from params
   const { movieId } = params;
   
@@ -42,6 +46,8 @@ export default function MovieDetail({ params }: { params: { movieId: string } })
   const [movie, setMovie] = useState<Movie | null>(null);
   const [user, setUser] = useState<any>(null);
   const [downloadLoading, setDownloadLoading] = useState(false);
+  const [watchlist, setWatchlist] = useState<string[]>([]);
+  const [loadingWatchlist, setLoadingWatchlist] = useState(false);
 
   // Fetch user data
   useEffect(() => {
@@ -52,6 +58,7 @@ export default function MovieDetail({ params }: { params: { movieId: string } })
           const data = await response.json();
           if (data.success) {
             setUser(data);
+            fetchWatchlist(); // Fetch watchlist after getting user data
           }
         }
       } catch (error) {
@@ -61,6 +68,85 @@ export default function MovieDetail({ params }: { params: { movieId: string } })
 
     fetchUserData();
   }, []);
+
+  // Fetch user's watchlist
+  const fetchWatchlist = async () => {
+    if (loadingWatchlist) return;
+    
+    setLoadingWatchlist(true);
+    try {
+      const response = await fetch('/api/user/watchlist/get');
+      if (response.ok) {
+        const data = await response.json();
+        if (data.success && data.movies) {
+          // Extract only the movie IDs for easy checking
+          const watchlistIds = data.movies.map((movie: Movie) => movie._id);
+          setWatchlist(watchlistIds);
+        }
+      }
+    } catch (error) {
+      console.error('Error fetching watchlist:', error);
+    } finally {
+      setLoadingWatchlist(false);
+    }
+  };
+  
+  // Toggle watchlist status for a movie
+  const toggleWatchlist = async () => {
+    if (!user || !movie) {
+      toast({
+        title: "Authentication Required",
+        description: "Please log in to add movies to your watchlist",
+        variant: "destructive"
+      });
+      router.push('/login');
+      return;
+    }
+    
+    const isInWatchlist = watchlist.includes(movie._id);
+    
+    // Optimistic UI update
+    if (isInWatchlist) {
+      setWatchlist(watchlist.filter(id => id !== movie._id));
+    } else {
+      setWatchlist([...watchlist, movie._id]);
+    }
+    
+    try {
+      const endpoint = isInWatchlist ? 'remove' : 'add';
+      const response = await fetch(`/api/user/watchlist/${endpoint}`, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json'
+        },
+        body: JSON.stringify({ movieId: movie._id })
+      });
+      
+      if (!response.ok) {
+        // Revert optimistic update on error
+        if (isInWatchlist) {
+          setWatchlist([...watchlist, movie._id]);
+        } else {
+          setWatchlist(watchlist.filter(id => id !== movie._id));
+        }
+        
+        throw new Error('Failed to update watchlist');
+      }
+      
+      toast({
+        title: isInWatchlist ? "Removed from Watchlist" : "Added to Watchlist",
+        description: isInWatchlist ? "Movie removed from your watchlist" : "Movie added to your watchlist",
+      });
+      
+    } catch (error) {
+      console.error('Error updating watchlist:', error);
+      toast({
+        title: "Error",
+        description: "Failed to update your watchlist",
+        variant: "destructive"
+      });
+    }
+  };
 
   // Fetch movie details
   useEffect(() => {
@@ -92,30 +178,44 @@ export default function MovieDetail({ params }: { params: { movieId: string } })
 
   // Handle download/forward to Telegram
   const handleDownload = async () => {
-    if (!movie) return;
+    if (!movie || !user) {
+      toast({
+        title: "Authentication Required",
+        description: "Please log in to download movies",
+        variant: "destructive"
+      });
+      router.push('/login');
+      return;
+    }
     
     setDownloadLoading(true);
     try {
+      // Log the download
+      await fetch(`/api/movies/${movie._id}/log-download`, {
+        method: 'POST'
+      });
+      
+      // Download the movie
       const response = await fetch(`/api/movies/download/${movie._id}`, {
         method: 'POST',
       });
       
       if (response.ok) {
-        // Import toast from sonner
-        const { toast } = await import('sonner');
-        // Show success message - file was sent to user's Telegram
-        toast.success("Movie has been sent to your Telegram!", {
-          duration: 3000,
+        toast({
+          title: "Sent to Telegram",
+          description: `"${movie.title}" has been sent to your Telegram account`,
+          variant: "default",
+          className: "border-l-4 border-red-600 bg-black/90 backdrop-blur-sm",
         });
       } else {
         throw new Error('Failed to send movie');
       }
     } catch (error) {
       console.error("Error forwarding movie:", error);
-      // Import toast from sonner
-      const { toast } = await import('sonner');
-      toast.error("Failed to send movie to Telegram. Please try again.", {
-        duration: 3000,
+      toast({
+        title: "Error",
+        description: "Failed to send movie to Telegram. Please try again.",
+        variant: "destructive"
       });
     } finally {
       setDownloadLoading(false);
@@ -172,6 +272,9 @@ export default function MovieDetail({ params }: { params: { movieId: string } })
     const mins = minutes % 60;
     return `${hours}h ${mins}m`;
   };
+
+  // Check if movie is in watchlist
+  const isInWatchlist = movie && watchlist.includes(movie._id);
 
   return (
     <div className="min-h-screen bg-black text-white">
@@ -231,6 +334,15 @@ export default function MovieDetail({ params }: { params: { movieId: string } })
                       </span>
                     </div>
                   </div>
+                  
+                  {/* Link to Watchlist */}
+                  <DropdownMenuItem 
+                    className="cursor-pointer hover:bg-gray-800 text-sm"
+                    onClick={() => router.push('/profile/watchlist')}
+                  >
+                    <Star className="mr-2 h-4 w-4" />
+                    <span>My Watchlist</span>
+                  </DropdownMenuItem>
                   
                   {/* If the user has Drive Mode access, show link to dashboard */}
                   {user?.channel_id && (
@@ -341,6 +453,12 @@ export default function MovieDetail({ params }: { params: { movieId: string } })
                           <span>{movie.country}</span>
                         </div>
                       )}
+                      {movie.downloads && (
+                        <div className="flex items-center">
+                          <Download className="h-4 w-4 mr-1" />
+                          <span>{movie.downloads.length} downloads</span>
+                        </div>
+                      )}
                     </div>
                     
                     {/* Genres */}
@@ -362,24 +480,45 @@ export default function MovieDetail({ params }: { params: { movieId: string } })
                       <p className="text-gray-300 mb-8 max-w-2xl">{movie.overview}</p>
                     )}
                     
-                    {/* Watch/Download button */}
-                    <Button 
-                      onClick={handleDownload}
-                      disabled={downloadLoading}
-                      className="bg-red-600 hover:bg-red-700 text-white py-2 px-6 rounded-md flex items-center"
-                    >
-                      {downloadLoading ? (
-                        <>
-                          <img src="/loader.gif" alt="Loading..." className="mr-2 h-5 w-5" />
-                          Sending to Telegram...
-                        </>
-                      ) : (
-                        <>
-                          <Download className="mr-2 h-5 w-5" />
-                          Send to Telegram
-                        </>
-                      )}
-                    </Button>
+                    {/* Action buttons */}
+                    <div className="flex flex-wrap gap-3">
+                      {/* Watch/Download button */}
+                      <Button 
+                        onClick={handleDownload}
+                        disabled={downloadLoading}
+                        className="bg-red-600 hover:bg-red-700 text-white py-2 px-6 rounded-md flex items-center"
+                      >
+                        {downloadLoading ? (
+                          <>
+                            <img src="/loader.gif" alt="Loading..." className="mr-2 h-5 w-5" />
+                            Sending to Telegram...
+                          </>
+                        ) : (
+                          <>
+                            <Download className="mr-2 h-5 w-5" />
+                            Send to Telegram
+                          </>
+                        )}
+                      </Button>
+                      
+                      {/* Watchlist button */}
+                      <Button 
+                        onClick={toggleWatchlist}
+                        className="bg-gray-800 hover:bg-gray-700 text-white py-2 px-6 rounded-md flex items-center"
+                      >
+                        {isInWatchlist ? (
+                          <>
+                            <Star className="mr-2 h-5 w-5 fill-yellow-400 text-yellow-400" />
+                            Remove from Watchlist
+                          </>
+                        ) : (
+                          <>
+                            <Star className="mr-2 h-5 w-5" />
+                            Add to Watchlist
+                          </>
+                        )}
+                      </Button>
+                    </div>
                   </div>
                 </div>
               </div>
