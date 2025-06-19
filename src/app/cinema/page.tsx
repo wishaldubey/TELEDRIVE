@@ -476,7 +476,7 @@ export default function Cinema() {
       <Link key={movie._id} href={`/cinema/${movie._id}`} className="flex-none w-[180px] group">
         <div className="overflow-hidden rounded-md aspect-[2/3] relative">
           <img 
-            src={`/api/movies/thumbnail/${movie._id}`} 
+            src={`/api/movies/poster/${movie._id}`} 
             alt={movie.title}
             className="w-full h-full object-cover transform group-hover:scale-105 transition-transform duration-300"
             loading="lazy"
@@ -543,24 +543,97 @@ export default function Cinema() {
       <header className="fixed top-0 w-full bg-gradient-to-b from-black/80 via-black/60 to-transparent z-50 backdrop-blur-sm">
         <div className="container mx-auto py-4 px-4">
           <div className="flex justify-between items-center">
-            <div className="flex items-center gap-4">
-              <Link href="/cinema" className="text-2xl font-bold text-red-600">
-                CINEMA
-              </Link>
+            <div className="flex items-center">
+              <div className="flex items-center">
+                <Link href="/cinema" className="text-2xl font-bold text-red-600 mr-10 cinema-text">
+                  CINEMA
+                </Link>
+              </div>
 
-              <nav className="hidden md:flex space-x-6">
-                <Link href="/cinema" className={`hover:text-gray-300 transition-colors ${!search && !genre && !year ? 'text-white' : 'text-gray-400'}`}>
+              {/* Desktop Navigation */}
+              <nav className="hidden md:flex items-center">
+                <Link href="/cinema" className="text-white mr-8">
                   Home
                 </Link>
-                {genres.slice(0, 5).map((g) => (
-                  <Link
-                    key={g}
-                    href={`/cinema?genre=${encodeURIComponent(g)}`}
-                    className={`hover:text-gray-300 transition-colors ${genre === g ? 'text-white' : 'text-gray-400'}`}
-                  >
-                    {g}
-                  </Link>
-                ))}
+                <Link href={`/cinema?genre=Action`} className="text-gray-400 hover:text-white transition-colors mr-8">
+                  Action
+                </Link>
+                <Link href={`/cinema?genre=Adventure`} className="text-gray-400 hover:text-white transition-colors mr-8">
+                  Adventure
+                </Link>
+                <Link href={`/cinema?genre=Animation`} className="text-gray-400 hover:text-white transition-colors mr-8">
+                  Animation
+                </Link>
+                <Link href={`/cinema?genre=Comedy`} className="text-gray-400 hover:text-white transition-colors mr-8">
+                  Comedy
+                </Link>
+                <Link href={`/cinema?genre=Crime`} className="text-gray-400 hover:text-white transition-colors mr-8">
+                  Crime
+                </Link>
+                <Link href="/profile/request-movie" className="text-gray-400 hover:text-white transition-colors">
+                  Request Movie
+                </Link>
+              </nav>
+              
+              {/* Mobile Navigation */}
+              <nav className="md:hidden ml-2">
+                <DropdownMenu>
+                  <DropdownMenuTrigger asChild>
+                    <Button variant="ghost" size="icon" className="text-white">
+                      <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><line x1="4" x2="20" y1="12" y2="12"/><line x1="4" x2="20" y1="6" y2="6"/><line x1="4" x2="20" y1="18" y2="18"/></svg>
+                    </Button>
+                  </DropdownMenuTrigger>
+                  <DropdownMenuContent align="start" className="w-56 bg-black/95 border-gray-800 text-white">
+                    <DropdownMenuItem 
+                      className="cursor-pointer hover:bg-gray-800 text-sm"
+                      onClick={() => router.push('/cinema')}
+                    >
+                      <span>Home</span>
+                    </DropdownMenuItem>
+                    <DropdownMenuItem 
+                      className="cursor-pointer hover:bg-gray-800 text-sm"
+                      onClick={() => router.push('/cinema?genre=Action')}
+                    >
+                      <span>Action</span>
+                    </DropdownMenuItem>
+                    <DropdownMenuItem 
+                      className="cursor-pointer hover:bg-gray-800 text-sm"
+                      onClick={() => router.push('/cinema?genre=Adventure')}
+                    >
+                      <span>Adventure</span>
+                    </DropdownMenuItem>
+                    <DropdownMenuItem 
+                      className="cursor-pointer hover:bg-gray-800 text-sm"
+                      onClick={() => router.push('/cinema?genre=Animation')}
+                    >
+                      <span>Animation</span>
+                    </DropdownMenuItem>
+                    <DropdownMenuItem 
+                      className="cursor-pointer hover:bg-gray-800 text-sm"
+                      onClick={() => router.push('/cinema?genre=Comedy')}
+                    >
+                      <span>Comedy</span>
+                    </DropdownMenuItem>
+                    <DropdownMenuItem 
+                      className="cursor-pointer hover:bg-gray-800 text-sm"
+                      onClick={() => router.push('/cinema?genre=Crime')}
+                    >
+                      <span>Crime</span>
+                    </DropdownMenuItem>
+                    <DropdownMenuItem 
+                      className="cursor-pointer hover:bg-gray-800 text-sm"
+                      onClick={() => router.push('/profile/watchlist')}
+                    >
+                      <span>My Watchlist</span>
+                    </DropdownMenuItem>
+                    <DropdownMenuItem 
+                      className="cursor-pointer hover:bg-gray-800 text-sm"
+                      onClick={() => router.push('/profile/request-movie')}
+                    >
+                      <span>Request Movie</span>
+                    </DropdownMenuItem>
+                  </DropdownMenuContent>
+                </DropdownMenu>
               </nav>
             </div>
 

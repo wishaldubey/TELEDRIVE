@@ -7,7 +7,7 @@ import { ObjectId } from 'mongodb';
 export async function POST(req: NextRequest) {
   try {
     // Verify authentication
-    const cookieStore = cookies();
+    const cookieStore = await cookies();
     const token = cookieStore.get('auth_token')?.value;
     
     if (!token) {

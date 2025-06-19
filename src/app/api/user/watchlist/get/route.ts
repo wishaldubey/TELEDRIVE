@@ -6,7 +6,7 @@ import { connectToDatabase } from '@/lib/db/mongodb';
 export async function GET(req: NextRequest) {
   try {
     // Verify authentication
-    const cookieStore = cookies();
+    const cookieStore = await cookies();
     const token = cookieStore.get('auth_token')?.value;
     
     if (!token) {
