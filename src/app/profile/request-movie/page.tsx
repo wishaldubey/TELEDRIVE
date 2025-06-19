@@ -8,6 +8,7 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Loader2 } from "lucide-react";
 import { toast } from "sonner";
+import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from "@/components/ui/dropdown-menu";
 
 export default function RequestMovie() {
   const router = useRouter();
@@ -123,14 +124,76 @@ export default function RequestMovie() {
       <header className="fixed top-0 w-full bg-gradient-to-b from-black/80 via-black/60 to-transparent z-50 backdrop-blur-sm">
         <div className="container mx-auto py-4 px-4">
           <div className="flex justify-between items-center">
-            <div className="flex items-center gap-4">
+            <div className="flex items-center">
+              {/* Mobile Navigation - Moved to the left */}
+              <nav className="md:hidden mr-2">
+                <DropdownMenu>
+                  <DropdownMenuTrigger asChild>
+                    <Button variant="ghost" size="icon" className="text-white">
+                      <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><line x1="4" x2="20" y1="12" y2="12"/><line x1="4" x2="20" y1="6" y2="6"/><line x1="4" x2="20" y1="18" y2="18"/></svg>
+                    </Button>
+                  </DropdownMenuTrigger>
+                  <DropdownMenuContent align="start" className="w-56 bg-black/95 border-gray-800 text-white">
+                    <DropdownMenuItem 
+                      className="cursor-pointer hover:bg-gray-800 text-sm"
+                      onClick={() => router.push('/cinema')}
+                    >
+                      <span>Home</span>
+                    </DropdownMenuItem>
+                    <DropdownMenuItem 
+                      className="cursor-pointer hover:bg-gray-800 text-sm"
+                      onClick={() => router.push('/cinema?genre=Action')}
+                    >
+                      <span>Action</span>
+                    </DropdownMenuItem>
+                    <DropdownMenuItem 
+                      className="cursor-pointer hover:bg-gray-800 text-sm"
+                      onClick={() => router.push('/cinema?genre=Adventure')}
+                    >
+                      <span>Adventure</span>
+                    </DropdownMenuItem>
+                    <DropdownMenuItem 
+                      className="cursor-pointer hover:bg-gray-800 text-sm"
+                      onClick={() => router.push('/cinema?genre=Animation')}
+                    >
+                      <span>Animation</span>
+                    </DropdownMenuItem>
+                    <DropdownMenuItem 
+                      className="cursor-pointer hover:bg-gray-800 text-sm"
+                      onClick={() => router.push('/cinema?genre=Comedy')}
+                    >
+                      <span>Comedy</span>
+                    </DropdownMenuItem>
+                    <DropdownMenuItem 
+                      className="cursor-pointer hover:bg-gray-800 text-sm"
+                      onClick={() => router.push('/cinema?genre=Crime')}
+                    >
+                      <span>Crime</span>
+                    </DropdownMenuItem>
+                    <DropdownMenuItem 
+                      className="cursor-pointer hover:bg-gray-800 text-sm"
+                      onClick={() => router.push('/profile/watchlist')}
+                    >
+                      <span>My Watchlist</span>
+                    </DropdownMenuItem>
+                    <DropdownMenuItem 
+                      className="cursor-pointer hover:bg-gray-800 text-sm"
+                      onClick={() => router.push('/profile/request-movie')}
+                    >
+                      <span>Request Movie</span>
+                    </DropdownMenuItem>
+                  </DropdownMenuContent>
+                </DropdownMenu>
+              </nav>
+              
               <Link
                 href="/cinema"
-                className="text-2xl font-bold text-red-600 cinema-text"
+                className="text-2xl font-bold text-red-600 cinema-text mr-10"
               >
                 CINEMA
               </Link>
 
+              {/* Desktop Navigation */}
               <nav className="hidden md:flex items-center">
                 <Link href="/cinema" className="text-gray-400 hover:text-white transition-colors mr-8">
                   Home

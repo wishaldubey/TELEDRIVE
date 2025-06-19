@@ -7,6 +7,7 @@ import { Button } from "@/components/ui/button";
 import { Loader } from "@/components/ui/loader";
 import { Star } from "lucide-react";
 import { useToast } from "@/components/ui/use-toast";
+import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from "@/components/ui/dropdown-menu";
 
 // Define interface for movie data
 interface Movie {
@@ -158,6 +159,67 @@ export default function Watchlist() {
         <div className="container mx-auto py-4 px-4">
           <div className="flex justify-between items-center">
             <div className="flex items-center">
+              {/* Mobile Navigation - Moved to the left */}
+              <nav className="md:hidden mr-2">
+                <DropdownMenu>
+                  <DropdownMenuTrigger asChild>
+                    <Button variant="ghost" size="icon" className="text-white">
+                      <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><line x1="4" x2="20" y1="12" y2="12"/><line x1="4" x2="20" y1="6" y2="6"/><line x1="4" x2="20" y1="18" y2="18"/></svg>
+                    </Button>
+                  </DropdownMenuTrigger>
+                  <DropdownMenuContent align="start" className="w-56 bg-black/95 border-gray-800 text-white">
+                    <DropdownMenuItem 
+                      className="cursor-pointer hover:bg-gray-800 text-sm"
+                      onClick={() => router.push('/cinema')}
+                    >
+                      <span>Home</span>
+                    </DropdownMenuItem>
+                    <DropdownMenuItem 
+                      className="cursor-pointer hover:bg-gray-800 text-sm"
+                      onClick={() => router.push('/cinema?genre=Action')}
+                    >
+                      <span>Action</span>
+                    </DropdownMenuItem>
+                    <DropdownMenuItem 
+                      className="cursor-pointer hover:bg-gray-800 text-sm"
+                      onClick={() => router.push('/cinema?genre=Adventure')}
+                    >
+                      <span>Adventure</span>
+                    </DropdownMenuItem>
+                    <DropdownMenuItem 
+                      className="cursor-pointer hover:bg-gray-800 text-sm"
+                      onClick={() => router.push('/cinema?genre=Animation')}
+                    >
+                      <span>Animation</span>
+                    </DropdownMenuItem>
+                    <DropdownMenuItem 
+                      className="cursor-pointer hover:bg-gray-800 text-sm"
+                      onClick={() => router.push('/cinema?genre=Comedy')}
+                    >
+                      <span>Comedy</span>
+                    </DropdownMenuItem>
+                    <DropdownMenuItem 
+                      className="cursor-pointer hover:bg-gray-800 text-sm"
+                      onClick={() => router.push('/cinema?genre=Crime')}
+                    >
+                      <span>Crime</span>
+                    </DropdownMenuItem>
+                    <DropdownMenuItem 
+                      className="cursor-pointer hover:bg-gray-800 text-sm"
+                      onClick={() => router.push('/profile/watchlist')}
+                    >
+                      <span>My Watchlist</span>
+                    </DropdownMenuItem>
+                    <DropdownMenuItem 
+                      className="cursor-pointer hover:bg-gray-800 text-sm"
+                      onClick={() => router.push('/profile/request-movie')}
+                    >
+                      <span>Request Movie</span>
+                    </DropdownMenuItem>
+                  </DropdownMenuContent>
+                </DropdownMenu>
+              </nav>
+              
               <div className="flex items-center">
                 <Link href="/cinema" className="text-2xl font-bold text-red-600 mr-10 cinema-text">
                   CINEMA
@@ -229,10 +291,10 @@ export default function Watchlist() {
                 </div>
               ) : (
                 <>
-                  <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 xl:grid-cols-6 gap-4">
+                  <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 xl:grid-cols-6 gap-4 md:gap-6">
                     {movies.map((movie) => (
-                      <div key={movie._id} className="relative">
-                        <Link href={`/cinema/${movie._id}`} className="group">
+                      <div key={movie._id} className="relative w-full">
+                        <Link href={`/cinema/${movie._id}`} className="group block w-full">
                           <div className="overflow-hidden rounded-md aspect-[2/3] relative">
                             <img 
                               src={`/api/movies/thumbnail/${movie._id}`} 

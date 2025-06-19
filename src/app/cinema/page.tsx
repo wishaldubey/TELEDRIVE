@@ -106,7 +106,7 @@ export default function Cinema() {
   const year = searchParams.get("year") || "";
   const sort = searchParams.get("sort") || "date";
   
-  // Use our custom debounce hook
+  // We'll still use the debounce hook but only for input validation, not for automatic search
   const debouncedSearchTerm = useDebounce(searchTerm, 500);
 
   // Fetch user data
@@ -239,26 +239,15 @@ export default function Cinema() {
     return user.username;
   };
   
-  // Handle search input changes
+  // Handle search input changes - Remove automatic search based on debounced term
   useEffect(() => {
-    if (debouncedSearchTerm !== search) {
-      // Check if search term is too short but not empty
-      if (debouncedSearchTerm && debouncedSearchTerm.length < 3) {
-        setIsSearchTooShort(true);
-        return;
-      } else {
-        setIsSearchTooShort(false);
-      }
-      
-      const params = new URLSearchParams(searchParams);
-      if (debouncedSearchTerm && debouncedSearchTerm.length >= 3) {
-        params.set("search", debouncedSearchTerm);
-      } else {
-        params.delete("search");
-      }
-      router.push(`/cinema?${params.toString()}`);
+    // Check if search term is too short but not empty
+    if (debouncedSearchTerm && debouncedSearchTerm.length < 3) {
+      setIsSearchTooShort(true);
+    } else {
+      setIsSearchTooShort(false);
     }
-  }, [debouncedSearchTerm, router, searchParams, search]);
+  }, [debouncedSearchTerm]);
   
   // Handle search change
   const handleSearchChange = (e: React.ChangeEvent<HTMLInputElement>) => {
@@ -268,14 +257,6 @@ export default function Cinema() {
     // Check if search term is too short but not empty
     if (value && value.length > 0 && value.length < 3) {
       setIsSearchTooShort(true);
-      // Show toast only once when initially typing less than 3 chars
-      if (!isSearchTooShort) {
-        toast({
-          title: "Enter at least 3 characters",
-          description: "Please type at least 3 characters to search",
-          variant: "default"
-        });
-      }
     } else {
       setIsSearchTooShort(false);
     }
@@ -451,9 +432,14 @@ export default function Cinema() {
     }
     
     setIsSearchTooShort(false);
+    
+    // Prepare search term for more flexible matching
+    // Remove extra spaces and normalize for searching
+    const normalizedSearch = searchTerm.trim().replace(/\s+/g, ' ').toLowerCase();
+    
     const params = new URLSearchParams(searchParams);
-    if (searchTerm && searchTerm.length >= 3) {
-      params.set("search", searchTerm);
+    if (normalizedSearch && normalizedSearch.length >= 3) {
+      params.set("search", normalizedSearch);
     } else {
       params.delete("search");
     }
@@ -473,7 +459,7 @@ export default function Cinema() {
     const isInWatchlist = watchlist.includes(movie._id);
     
     return (
-      <Link key={movie._id} href={`/cinema/${movie._id}`} className="flex-none w-[180px] group">
+      <Link key={movie._id} href={`/cinema/${movie._id}`} className="block w-full group">
         <div className="overflow-hidden rounded-md aspect-[2/3] relative">
           <img 
             src={`/api/movies/poster/${movie._id}`} 
@@ -529,7 +515,9 @@ export default function Cinema() {
         <div className="relative">
           <div className="flex space-x-4 overflow-x-auto pb-4 no-scrollbar">
             {movies.map((movie) => (
-              <MovieCard key={movie._id} movie={movie} />
+              <div key={movie._id} className="flex-none w-[140px] sm:w-[160px] md:w-[180px]">
+                <MovieCard movie={movie} />
+              </div>
             ))}
           </div>
         </div>
@@ -544,39 +532,8 @@ export default function Cinema() {
         <div className="container mx-auto py-4 px-4">
           <div className="flex justify-between items-center">
             <div className="flex items-center">
-              <div className="flex items-center">
-                <Link href="/cinema" className="text-2xl font-bold text-red-600 mr-10 cinema-text">
-                  CINEMA
-                </Link>
-              </div>
-
-              {/* Desktop Navigation */}
-              <nav className="hidden md:flex items-center">
-                <Link href="/cinema" className="text-white mr-8">
-                  Home
-                </Link>
-                <Link href={`/cinema?genre=Action`} className="text-gray-400 hover:text-white transition-colors mr-8">
-                  Action
-                </Link>
-                <Link href={`/cinema?genre=Adventure`} className="text-gray-400 hover:text-white transition-colors mr-8">
-                  Adventure
-                </Link>
-                <Link href={`/cinema?genre=Animation`} className="text-gray-400 hover:text-white transition-colors mr-8">
-                  Animation
-                </Link>
-                <Link href={`/cinema?genre=Comedy`} className="text-gray-400 hover:text-white transition-colors mr-8">
-                  Comedy
-                </Link>
-                <Link href={`/cinema?genre=Crime`} className="text-gray-400 hover:text-white transition-colors mr-8">
-                  Crime
-                </Link>
-                <Link href="/profile/request-movie" className="text-gray-400 hover:text-white transition-colors">
-                  Request Movie
-                </Link>
-              </nav>
-              
-              {/* Mobile Navigation */}
-              <nav className="md:hidden ml-2">
+              {/* Mobile Navigation - Moved to the left */}
+              <nav className="md:hidden mr-2">
                 <DropdownMenu>
                   <DropdownMenuTrigger asChild>
                     <Button variant="ghost" size="icon" className="text-white">
@@ -624,45 +581,80 @@ export default function Cinema() {
                       className="cursor-pointer hover:bg-gray-800 text-sm"
                       onClick={() => router.push('/profile/watchlist')}
                     >
-                      <span>My Watchlist</span>
-                    </DropdownMenuItem>
-                    <DropdownMenuItem 
-                      className="cursor-pointer hover:bg-gray-800 text-sm"
-                      onClick={() => router.push('/profile/request-movie')}
-                    >
+                     
                       <span>Request Movie</span>
                     </DropdownMenuItem>
                   </DropdownMenuContent>
                 </DropdownMenu>
               </nav>
+              
+              <div className="flex items-center">
+                <Link href="/cinema" className="text-2xl font-bold text-red-600 mr-10 cinema-text">
+                  CINEMA
+                </Link>
+              </div>
+
+              {/* Desktop Navigation */}
+              <nav className="hidden md:flex items-center">
+                <Link href="/cinema" className="text-white mr-8">
+                  Home
+                </Link>
+                <Link href={`/cinema?genre=Action`} className="text-gray-400 hover:text-white transition-colors mr-8">
+                  Action
+                </Link>
+                <Link href={`/cinema?genre=Adventure`} className="text-gray-400 hover:text-white transition-colors mr-8">
+                  Adventure
+                </Link>
+                <Link href={`/cinema?genre=Animation`} className="text-gray-400 hover:text-white transition-colors mr-8">
+                  Animation
+                </Link>
+                <Link href={`/cinema?genre=Comedy`} className="text-gray-400 hover:text-white transition-colors mr-8">
+                  Comedy
+                </Link>
+                <Link href={`/cinema?genre=Crime`} className="text-gray-400 hover:text-white transition-colors mr-8">
+                  Crime
+                </Link>
+                <Link href="/profile/request-movie" className="text-gray-400 hover:text-white transition-colors">
+                  Request Movie
+                </Link>
+              </nav>
             </div>
 
-            <div className="flex items-center space-x-4">
+            <div className="flex items-center space-x-3">
               {/* Search form */}
               <form onSubmit={handleSearch} className="flex items-center">
                 <div className="relative">
                   <Input 
                     type="search"
-                    placeholder="Search titles..."
+                    placeholder="Search"
                     value={searchTerm}
                     onChange={handleSearchChange}
                     className={`bg-black/30 border-gray-700 text-white w-32 md:w-64 h-9 ${isSearchTooShort ? 'border-red-500' : ''}`}
+                    onKeyDown={(e) => {
+                      if (e.key === 'Enter') {
+                        e.preventDefault();
+                        if (searchTerm.length >= 3 || searchTerm.length === 0) {
+                          handleSearch(e as any);
+                        } else {
+                          toast({
+                            title: "Enter at least 3 characters",
+                            description: "Please type at least 3 characters to search",
+                            variant: "default"
+                          });
+                        }
+                      }
+                    }}
                   />
-                  {isSearchTooShort && (
-                    <span className="absolute -bottom-5 left-0 text-red-500 text-xs">
-                      Enter at least 3 characters
-                    </span>
-                  )}
+                 
+                  <button 
+                    type="submit" 
+                    className="absolute right-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-gray-400 cursor-pointer hover:text-white transition-colors"
+                    aria-label="Search"
+                  >
+                    <Search className="h-4 w-4" />
+                  </button>
                 </div>
-                <Button 
-                  type="submit" 
-                  variant="ghost"
-                  size="icon"
-                  className="ml-1 text-gray-400 hover:text-white"
-                  disabled={isSearchTooShort}
-                >
-                  <Search size={18} />
-                </Button>
+               
               </form>
               
               {/* User profile dropdown */}
@@ -904,7 +896,9 @@ export default function Cinema() {
                   ) : (
                     <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 xl:grid-cols-6 gap-4">
                       {movies.map((movie) => (
-                        <MovieCard key={movie._id} movie={movie} />
+                        <div key={movie._id} className="w-full">
+                          <MovieCard movie={movie} />
+                        </div>
                       ))}
                     </div>
                   )}

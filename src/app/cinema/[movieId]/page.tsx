@@ -565,41 +565,9 @@ export default function MovieDetail({ params }: { params: { movieId: string } })
       <header className="fixed top-0 w-full bg-gradient-to-b from-black/80 via-black/60 to-transparent z-50 backdrop-blur-sm">
         <div className="container mx-auto py-4 px-4">
           <div className="flex justify-between items-center">
-            <div className="flex items-center gap-4">
-              <Link
-                href="/cinema"
-                className="text-2xl font-bold text-red-600 cinema-text mr-10"
-              >
-                CINEMA
-              </Link>
-
-              {/* Desktop Navigation */}
-              <nav className="hidden md:flex items-center">
-                <Link href="/cinema" className="text-gray-400 hover:text-white transition-colors mr-8">
-                  Home
-                </Link>
-                <Link href={`/cinema?genre=Action`} className="text-gray-400 hover:text-white transition-colors mr-8">
-                  Action
-                </Link>
-                <Link href={`/cinema?genre=Adventure`} className="text-gray-400 hover:text-white transition-colors mr-8">
-                  Adventure
-                </Link>
-                <Link href={`/cinema?genre=Animation`} className="text-gray-400 hover:text-white transition-colors mr-8">
-                  Animation
-                </Link>
-                <Link href={`/cinema?genre=Comedy`} className="text-gray-400 hover:text-white transition-colors mr-8">
-                  Comedy
-                </Link>
-                <Link href={`/cinema?genre=Crime`} className="text-gray-400 hover:text-white transition-colors mr-8">
-                  Crime
-                </Link>
-                <Link href="/profile/request-movie" className="text-gray-400 hover:text-white transition-colors">
-                  Request Movie
-                </Link>
-              </nav>
-              
-              {/* Mobile Navigation */}
-              <nav className="md:hidden">
+            <div className="flex items-center">
+              {/* Mobile Navigation - Moved to the left */}
+              <nav className="md:hidden mr-2">
                 <DropdownMenu>
                   <DropdownMenuTrigger asChild>
                     <Button variant="ghost" size="icon" className="text-white">
@@ -657,6 +625,38 @@ export default function MovieDetail({ params }: { params: { movieId: string } })
                     </DropdownMenuItem>
                   </DropdownMenuContent>
                 </DropdownMenu>
+              </nav>
+              
+              <Link
+                href="/cinema"
+                className="text-2xl font-bold text-red-600 cinema-text mr-10"
+              >
+                CINEMA
+              </Link>
+
+              {/* Desktop Navigation */}
+              <nav className="hidden md:flex items-center">
+                <Link href="/cinema" className="text-gray-400 hover:text-white transition-colors mr-8">
+                  Home
+                </Link>
+                <Link href={`/cinema?genre=Action`} className="text-gray-400 hover:text-white transition-colors mr-8">
+                  Action
+                </Link>
+                <Link href={`/cinema?genre=Adventure`} className="text-gray-400 hover:text-white transition-colors mr-8">
+                  Adventure
+                </Link>
+                <Link href={`/cinema?genre=Animation`} className="text-gray-400 hover:text-white transition-colors mr-8">
+                  Animation
+                </Link>
+                <Link href={`/cinema?genre=Comedy`} className="text-gray-400 hover:text-white transition-colors mr-8">
+                  Comedy
+                </Link>
+                <Link href={`/cinema?genre=Crime`} className="text-gray-400 hover:text-white transition-colors mr-8">
+                  Crime
+                </Link>
+                <Link href="/profile/request-movie" className="text-gray-400 hover:text-white transition-colors">
+                  Request Movie
+                </Link>
               </nav>
             </div>
 

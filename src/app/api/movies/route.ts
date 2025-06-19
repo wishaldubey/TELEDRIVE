@@ -24,31 +24,64 @@ export async function GET(req: NextRequest) {
     const query: any = {};
     
     if (searchQuery) {
-      // Improve search with better text matching
-      // Use text index if available, otherwise more sophisticated regex
+      // Improved search with better text matching for various formats
       try {
-        // First try with a simple case-insensitive regex for exact matches
-        const exactMatchQuery = { title: { $regex: `\\b${searchQuery}\\b`, $options: "i" } };
-        const exactMatches = await db.collection("movies").countDocuments(exactMatchQuery);
+        // Normalize search query - remove punctuation, convert to lowercase, normalize spaces
+        const normalizedSearch = searchQuery.toLowerCase()
+          .replace(/[.,\/#!$%\^&\*;:{}=\-_`~()]/g, "")  // Remove punctuation
+          .replace(/\s+/g, "")                          // Remove ALL spaces for comparison
+          .trim();
         
-        // If exact matches found, use that query
-        if (exactMatches > 0) {
-          query.title = { $regex: `\\b${searchQuery}\\b`, $options: "i" };
-        } else {
-          // Try a more lenient search for partial matches
-          const words = searchQuery.split(/\s+/).filter(word => word.length > 2);
+        // Create a version with spaces completely removed to match titles regardless of spacing
+        const noSpaceSearch = searchQuery.toLowerCase().replace(/\s+/g, "");
+        
+        // Create a flexible regex pattern that makes spaces optional between characters
+        // This will match cases like "8 A M" when searching for "8am"
+        let flexiblePattern = "";
+        for (let i = 0; i < normalizedSearch.length; i++) {
+          flexiblePattern += normalizedSearch[i] + "\\s*";
+        }
+        // Remove the trailing \s*
+        flexiblePattern = flexiblePattern.slice(0, -3);
+        
+        // Create multiple search conditions to find the movie in different ways
+        const searchConditions: any[] = [
+          // Original query with case insensitivity
+          { title: { $regex: searchQuery, $options: "i" } },
           
-          if (words.length > 1) {
-            // For multi-word search, use $and to match all words
-            const wordConditions = words.map(word => ({
+          // Flexible pattern that makes spaces optional between each character
+          { title: { $regex: flexiblePattern, $options: "i" } },
+          
+          // Match on a normalized version (no spaces) of the title field
+          // Using a simpler approach that will work with MongoDB
+          { title: { $regex: noSpaceSearch.split("").join("\\s*"), $options: "i" } }
+        ];
+        
+        // Original words-based approach for longer queries
+        if (normalizedSearch.length > 3) {
+          const searchWords = searchQuery.toLowerCase()
+            .replace(/[.,\/#!$%\^&\*;:{}=\-_`~()]/g, "")
+            .split(/\s+/)
+            .filter(word => word.length > 1);
+            
+          if (searchWords.length > 1) {
+            // For multi-word searches
+            const phraseRegex = searchWords.join("\\s*");
+            const wordConditions = searchWords.map(word => ({
               title: { $regex: word, $options: "i" }
             }));
-            query.$and = wordConditions;
-          } else {
-            // For single word, use simple partial match
-            query.title = { $regex: searchQuery, $options: "i" };
+            
+            searchConditions.push(
+              { title: { $regex: phraseRegex, $options: "i" } },
+              { $and: wordConditions }
+            );
           }
         }
+        
+        // Combine all search approaches with OR
+        query.$or = searchConditions;
+        
+        console.log("Advanced search query:", JSON.stringify(query));
       } catch (error) {
         console.error("Error with advanced search:", error);
         // Fallback to simple search
