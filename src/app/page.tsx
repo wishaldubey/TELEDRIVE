@@ -5,11 +5,12 @@ import { useRouter } from 'next/navigation';
 import { Button } from '@/components/ui/button';
 import Link from 'next/link';
 import Image from 'next/image';
-import { ChevronRight, CheckCircle, FilmIcon, FileIcon, GlobeIcon } from 'lucide-react';
+import { ChevronRight, CheckCircle, FilmIcon, FileIcon, GlobeIcon, Download } from 'lucide-react';
 
 export default function Home() {
   const router = useRouter();
   const [isLoading, setIsLoading] = useState(true);
+  const [isAndroid, setIsAndroid] = useState(false);
   
   // Check if the user is already logged in
   useEffect(() => {
@@ -36,6 +37,14 @@ export default function Home() {
     }
     
     checkAuth();
+
+    // Detect if the user is on Android device
+    if (typeof window !== 'undefined') {
+      const userAgent = window.navigator.userAgent.toLowerCase();
+      if (userAgent.indexOf('android') > -1 && userAgent.indexOf('mobile') > -1) {
+        setIsAndroid(true);
+      }
+    }
   }, [router]);
   
   // Show loading state until authentication check completes
@@ -361,6 +370,20 @@ export default function Home() {
           </div>
         </div>
       </footer>
+
+      {/* Floating Download Button - Only visible on Android devices */}
+      {isAndroid && (
+        <div className="fixed bottom-8 right-8 z-50">
+          <a 
+            href="/TELEDRIVE.apk" 
+            download
+            className="flex items-center gap-2 bg-red-600 hover:bg-red-700 text-white px-4 py-3 rounded-full shadow-lg transition-all hover:shadow-xl"
+          >
+            <Download className="h-5 w-5" />
+            <span>Download our Android app</span>
+          </a>
+        </div>
+      )}
     </div>
   );
 }
