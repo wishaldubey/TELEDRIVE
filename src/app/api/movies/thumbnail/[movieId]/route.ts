@@ -39,10 +39,20 @@ export async function GET(
         });
         
         const buffer = Buffer.from(response.data, "binary");
+
+        // Check if the movie has been recently updated
+        const updatedRecently = movie.updatedAt && 
+          (new Date().getTime() - new Date(movie.updatedAt).getTime() < 86400000); // 24 hours
+
+        // Use shorter cache time if recently updated
+        const cacheControl = updatedRecently 
+          ? "public, max-age=60" // 1 minute cache if recently updated
+          : "public, max-age=86400"; // 1 day cache otherwise
+
         return new NextResponse(buffer, {
           headers: {
             "Content-Type": "image/jpeg",
-            "Cache-Control": "public, max-age=31536000, immutable",
+            "Cache-Control": cacheControl,
           },
         });
       } catch (error) {
@@ -73,10 +83,20 @@ export async function GET(
           });
 
           const buffer = Buffer.from(fileResponse.data, "binary");
+
+          // Check if the movie has been recently updated
+          const updatedRecently = movie.updatedAt && 
+            (new Date().getTime() - new Date(movie.updatedAt).getTime() < 86400000); // 24 hours
+
+          // Use shorter cache time if recently updated
+          const cacheControl = updatedRecently 
+            ? "public, max-age=60" // 1 minute cache if recently updated
+            : "public, max-age=86400"; // 1 day cache otherwise
+
           return new NextResponse(buffer, {
             headers: {
               "Content-Type": "image/jpeg",
-              "Cache-Control": "public, max-age=31536000, immutable",
+              "Cache-Control": cacheControl,
             },
           });
         }
@@ -121,10 +141,19 @@ export async function GET(
                 { $set: { poster_url: posterUrl } }
               );
               
+              // Check if the movie has been recently updated
+              const updatedRecently = movie.updatedAt && 
+                (new Date().getTime() - new Date(movie.updatedAt).getTime() < 86400000); // 24 hours
+
+              // Use shorter cache time if recently updated
+              const cacheControl = updatedRecently 
+                ? "public, max-age=60" // 1 minute cache if recently updated
+                : "public, max-age=86400"; // 1 day cache otherwise
+
               return new NextResponse(buffer, {
                 headers: {
                   "Content-Type": "image/jpeg",
-                  "Cache-Control": "public, max-age=31536000, immutable",
+                  "Cache-Control": cacheControl,
                 },
               });
             } catch (posterError) {

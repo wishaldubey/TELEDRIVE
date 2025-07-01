@@ -56,7 +56,7 @@ export async function PATCH(
       filteredUpdate.metadata_fetched = true;
     }
     
-    // Add updatedAt timestamp
+    // Always add updatedAt timestamp
     filteredUpdate.updatedAt = new Date();
     
     // Connect to MongoDB
