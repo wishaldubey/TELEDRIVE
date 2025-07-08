@@ -10,10 +10,40 @@ const DRIVE_MODE_PATHS = ['/dashboard', '/api/files'];
 const CINEMA_PATHS = ['/cinema', '/api/movies'];
 // Paths that logged-in users should not access (redirect to dashboard)
 const REDIRECT_WHEN_LOGGED_IN = ['/', '/login'];
+// Public API paths that should skip auth checks
+const PUBLIC_API_PATHS = ['/api/stream-proxy'];
 
 export async function middleware(request: NextRequest) {
   // Check the current path
   const path = request.nextUrl.pathname;
+  
+  // Apply CORS headers for API routes, especially stream-proxy
+  if (path.startsWith('/api/stream-proxy')) {
+    // For stream proxy, bypass auth and add CORS headers
+    const response = NextResponse.next();
+    
+    // Handle OPTIONS for preflight requests
+    if (request.method === 'OPTIONS') {
+      return new NextResponse(null, {
+        status: 204,
+        headers: {
+          'Access-Control-Allow-Origin': '*',
+          'Access-Control-Allow-Methods': 'GET, OPTIONS',
+          'Access-Control-Allow-Headers': 'Content-Type, Authorization, X-Requested-With, Accept, Range',
+          'Access-Control-Max-Age': '86400',
+          'Cross-Origin-Resource-Policy': 'cross-origin',
+        },
+      });
+    }
+    
+    // Add CORS headers for stream-proxy
+    response.headers.set('Access-Control-Allow-Origin', '*');
+    response.headers.set('Access-Control-Allow-Methods', 'GET, OPTIONS');
+    response.headers.set('Access-Control-Allow-Headers', 'Content-Type, Authorization, X-Requested-With, Accept, Range');
+    response.headers.set('Cross-Origin-Resource-Policy', 'cross-origin');
+    
+    return response;
+  }
   
   // Get the token from cookies
   const token = request.cookies.get('auth_token')?.value;
@@ -37,6 +67,11 @@ export async function middleware(request: NextRequest) {
       // If token verification fails, continue with the request
       console.error('Auth middleware error:', error);
     }
+  }
+
+  // If it's a public API path, skip auth checks
+  if (PUBLIC_API_PATHS.some(prefix => path.startsWith(prefix))) {
+    return NextResponse.next();
   }
 
   // If not a protected path, continue
@@ -78,15 +113,22 @@ export async function middleware(request: NextRequest) {
   }
 }
 
-// Update matcher to include the home page and login page
+// Update matcher to include stream-proxy path
 export const config = {
   matcher: [
-    '/',
-    '/login',
-    '/dashboard/:path*',
-    '/api/files/:path*',
-    '/api/download/:path*',
-    '/cinema/:path*',
-    '/api/movies/:path*',
+    "/dashboard/:path*",
+    "/streams/:path*",
+    "/cinema/:path*",
+    "/profile/:path*",
+    "/vibe-match/:path*",
+    "/api/files/:path*",
+    "/api/user/:path*",
+    "/api/download/:path*",
+    "/api/movies/:path*",
+    "/api/auth/user/:path*",
+    "/api/vibe-match/:path*",
+    '/api/stream-proxy/:path*'
   ],
-}; 
+};
+
+ 

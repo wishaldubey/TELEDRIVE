@@ -40,6 +40,7 @@ interface Movie {
   message_id: number;
   uploaded_at: string;
   downloads?: string[];
+  updatedAt?: string;
 }
 
 interface MovieApiResponse {
@@ -462,7 +463,7 @@ export default function Cinema() {
       <Link key={movie._id} href={`/cinema/${movie._id}`} className="block w-full group">
         <div className="overflow-hidden rounded-md aspect-[2/3] relative">
           <img 
-            src={`/api/movies/poster/${movie._id}`} 
+            src={`/api/movies/poster/${movie._id}?t=${movie.updatedAt ? new Date(movie.updatedAt).getTime() : Date.now()}`} 
             alt={movie.title}
             className="w-full h-full object-cover transform group-hover:scale-105 transition-transform duration-300"
             loading="lazy"
@@ -577,12 +578,18 @@ export default function Cinema() {
                     >
                       <span>Crime</span>
                     </DropdownMenuItem>
+               
                     <DropdownMenuItem 
                       className="cursor-pointer hover:bg-gray-800 text-sm"
-                      onClick={() => router.push('/profile/watchlist')}
+                      onClick={() => router.push('/profile/request-movie')}
                     >
-                     
                       <span>Request Movie</span>
+                    </DropdownMenuItem>
+                    <DropdownMenuItem 
+                      className="cursor-pointer hover:bg-gray-800 text-sm"
+                      onClick={() => router.push('/vibe-match')}
+                    >
+                      <span>Vibe Match</span>
                     </DropdownMenuItem>
                   </DropdownMenuContent>
                 </DropdownMenu>
@@ -614,8 +621,12 @@ export default function Cinema() {
                 <Link href={`/cinema?genre=Crime`} className="text-gray-400 hover:text-white transition-colors mr-8">
                   Crime
                 </Link>
-                <Link href="/profile/request-movie" className="text-gray-400 hover:text-white transition-colors">
+                
+                <Link href="/profile/request-movie" className="text-gray-400 hover:text-white transition-colors mr-8">
                   Request Movie
+                </Link>
+                <Link href="/vibe-match" className="text-gray-400 hover:text-white transition-colors">
+                  Vibe Match
                 </Link>
               </nav>
             </div>

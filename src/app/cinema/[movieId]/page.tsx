@@ -45,6 +45,7 @@ interface Movie {
   runtime?: number;
   country?: string;
   downloads?: string[];
+  updatedAt?: string;
 }
 
 // Simple multi-select component for genres
@@ -827,7 +828,7 @@ export default function MovieDetail({ params }: { params: { movieId: string } })
                   {/* Movie poster - hidden on mobile */}
                   <div className="hidden md:block w-48 h-72 rounded-md overflow-hidden shadow-xl flex-shrink-0">
                     <img 
-                      src={`/api/movies/poster/${movie._id}`}
+                      src={`/api/movies/poster/${movie._id}?t=${movie.updatedAt ? new Date(movie.updatedAt).getTime() : Date.now()}`}
                       alt={movie.title}
                       className="w-full h-full object-cover"
                     />

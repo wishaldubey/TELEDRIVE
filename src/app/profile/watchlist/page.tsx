@@ -21,6 +21,7 @@ interface Movie {
   file_name: string;
   message_id: number;
   uploaded_at: string;
+  updatedAt?: string;
 }
 
 interface WatchlistResponse {
@@ -297,7 +298,7 @@ export default function Watchlist() {
                         <Link href={`/cinema/${movie._id}`} className="group block w-full">
                           <div className="overflow-hidden rounded-md aspect-[2/3] relative">
                             <img 
-                              src={`/api/movies/thumbnail/${movie._id}`} 
+                              src={`/api/movies/thumbnail/${movie._id}?t=${movie.updatedAt ? new Date(movie.updatedAt).getTime() : Date.now()}`} 
                               alt={movie.title}
                               className="w-full h-full object-cover transform group-hover:scale-105 transition-transform duration-300"
                               loading="lazy"
